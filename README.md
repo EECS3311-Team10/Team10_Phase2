@@ -16,4 +16,4 @@ Full frontend, AI chatbot integration, deployment with Docker.
 - API endpoints for frontend + chatbot
 
 ## Run Locally
-(update this later)
+(update this later))
