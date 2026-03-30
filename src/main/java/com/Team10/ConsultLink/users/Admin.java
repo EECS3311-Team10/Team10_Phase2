@@ -1,9 +1,12 @@
 package com.Team10.ConsultLink.users;
 
-import com.Team10.ConsultLink.service.*;
+import jakarta.persistence.*;
+import lombok.*;
 
-
-
+@Entity
+@DiscriminatorValue("ADMIN")
+@Getter @Setter
+@NoArgsConstructor // Required for JPA
 public class Admin extends User {
 
     private static int idCounter = 1;
@@ -13,6 +16,8 @@ public class Admin extends User {
         this.setRole("Admin");
         this.userId = "AD-" + idCounter++;
     }
+}
+/* 
 
     // =========================================================
     // Consultant approval
@@ -47,4 +52,5 @@ public class Admin extends User {
 
         System.out.println("System policies updated by admin.");
     }
-}
+        
+}*/
