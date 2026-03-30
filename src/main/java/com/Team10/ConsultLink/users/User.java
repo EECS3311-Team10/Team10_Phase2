@@ -1,13 +1,29 @@
 package com.Team10.ConsultLink.users;
 
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "users")
+
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@Getter @Setter 
+@NoArgsConstructor // Required for JPA to work
+
 public abstract class User {
   
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    protected Long id;
     protected String userId;
     private String name;
+
     private String email;
     private String phone;
     private String role;
-    
+ 
     protected User(String name, String email, String phone, String role) {
         this.name = name;
         this.email = email;
@@ -15,8 +31,7 @@ public abstract class User {
         this.role = role;
     }
 
-    public User() {
-    }
+
     
     public void setName(String name) {
         this.name = name;
