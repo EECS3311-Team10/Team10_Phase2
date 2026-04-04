@@ -31,8 +31,6 @@ public abstract class User {
         this.role = role;
     }
 
-
-    
     public void setName(String name) {
         this.name = name;
     }
