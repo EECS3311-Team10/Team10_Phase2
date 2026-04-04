@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p id="welcomeMessage"></p>
+
+        <div class="login-box">
+            <button onclick="window.location.href='index.html'">Logout</button>
+        </div>
+
+        <div id="output" style="margin-top: 20px; text-align: left;"></div>
+    </div>
+
+    <script>
+        const userName = localStorage.getItem("userName");
+        const userId = localStorage.getItem("userId");
+        const userRole = localStorage.getItem("userRole");
+
+        if (userRole !== "Admin") {
+            window.location.href = "index.html";
+        }
+
+        document.getElementById("welcomeMessage").innerText =
+            `Welcome, ${userName} (${userId})`;
+    </script>
+</body>
+</html>

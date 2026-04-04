@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Payment History</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')" class="active">Payment History</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Payment History</h1>
+        <div class="card">
+            <ul id="paymentList" class="simple-list"></ul>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardClient();
+    loadPayments();
+
+    function guardClient() {
+        if (localStorage.getItem("userRole") !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function loadPayments() {
+        const paymentList = document.getElementById("paymentList");
+        const payments = JSON.parse(localStorage.getItem("payments")) || [];
+        const userId = localStorage.getItem("userId") || "ClientUser";
+
+        const clientPayments = payments.filter(payment => payment.client === userId);
+
+        if (clientPayments.length === 0) {
+            paymentList.innerHTML = "<li>No payment history found.</li>";
+            return;
+        }
+
+        paymentList.innerHTML = "";
+
+        clientPayments.forEach(payment => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <strong>Transaction ID:</strong> ${payment.transactionId}<br>
+                <strong>Booking ID:</strong> ${payment.bookingId}<br>
+                <strong>Service:</strong> ${payment.service}<br>
+                <strong>Amount:</strong> $${payment.amount}.00<br>
+                <strong>Method:</strong> ${payment.method}<br>
+                <strong>Status:</strong> ${payment.status}<br>
+                <strong>Date:</strong> ${payment.date}
+            `;
+            paymentList.appendChild(li);
+        });
+    }
+</script>
+</body>
+</html>

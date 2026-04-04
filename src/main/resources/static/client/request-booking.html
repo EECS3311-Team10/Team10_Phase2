@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Request Booking</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')" class="active">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')">Payment History</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Request Booking</h1>
+
+        <div class="card">
+            <label for="service">Select Service</label>
+            <select id="service" class="input">
+                <option value="">-- Choose a service --</option>
+                <option value="Consulting">Consulting — Intro session — $100.00</option>
+                <option value="Resume Review">Resume Review — 30-min review — $60.00</option>
+                <option value="Mock Interview">Mock Interview — 45-min interview — $120.00</option>
+            </select>
+
+            <label for="consultant">Select Consultant</label>
+            <select id="consultant" class="input">
+                <option value="">-- Choose a consultant --</option>
+                <option value="Jane Smith">Jane Smith</option>
+                <option value="Michael Lee">Michael Lee</option>
+                <option value="Sarah Chen">Sarah Chen</option>
+            </select>
+
+            <label for="timeSlot">Select Time Slot</label>
+            <select id="timeSlot" class="input">
+                <option value="">-- Choose a time slot --</option>
+                <option value="2026-04-05 10:00 AM">2026-04-05 10:00 AM</option>
+                <option value="2026-04-05 02:00 PM">2026-04-05 02:00 PM</option>
+                <option value="2026-04-06 11:00 AM">2026-04-06 11:00 AM</option>
+            </select>
+
+            <button class="primary-btn" onclick="submitBooking()">Submit Booking Request</button>
+            <p id="message" class="page-message"></p>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardClient();
+
+    function guardClient() {
+        if (localStorage.getItem("userRole") !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function submitBooking() {
+        const service = document.getElementById("service").value;
+        const consultant = document.getElementById("consultant").value;
+        const timeSlot = document.getElementById("timeSlot").value;
+        const message = document.getElementById("message");
+        const userId = localStorage.getItem("userId") || "ClientUser";
+
+        if (!service || !consultant || !timeSlot) {
+            message.innerText = "Please select a service, consultant, and time slot.";
+            return;
+        }
+
+        let price = 0;
+        if (service === "Consulting") price = 100;
+        if (service === "Resume Review") price = 60;
+        if (service === "Mock Interview") price = 120;
+
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+        const newBooking = {
+            bookingId: "BK-" + Date.now(),
+            client: userId,
+            service: service,
+            consultant: consultant,
+            timeSlot: timeSlot,
+            price: price,
+            status: "Requested"
+        };
+
+        bookings.push(newBooking);
+        localStorage.setItem("bookings", JSON.stringify(bookings));
+
+        message.innerText = `Booking request submitted successfully. Booking ID: ${newBooking.bookingId}`;
+
+        document.getElementById("service").value = "";
+        document.getElementById("consultant").value = "";
+        document.getElementById("timeSlot").value = "";
+    }
+</script>
+</body>
+</html>

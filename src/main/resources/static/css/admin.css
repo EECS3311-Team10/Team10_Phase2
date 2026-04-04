@@ -1,0 +1,34 @@
+.dashboard-card {
+    max-width: 650px;
+}
+
+.admin-panel {
+    margin-top: 15px;
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.admin-panel h3 {
+    margin-bottom: 12px;
+}
+
+.admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-actions button {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #7c3aed;
+    color: white;
+    cursor: pointer;
+}
+
+.admin-actions button:hover {
+    background: #6d28d9;
+}

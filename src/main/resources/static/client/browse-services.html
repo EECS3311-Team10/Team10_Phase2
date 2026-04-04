@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Services</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')" class="active">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')">Payment History</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Browse Services</h1>
+        <div class="card">
+            <ul class="simple-list">
+                <li><strong>Consulting</strong> — Intro session — $100.00</li>
+                <li><strong>Resume Review</strong> — 30-min review — $60.00</li>
+                <li><strong>Mock Interview</strong> — 45-min interview — $120.00</li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardClient();
+
+    function guardClient() {
+        if (localStorage.getItem("userRole") !== "Client") {
+            window.location.href = "index.html";
+        }
+    }
+
+    function go(page) { window.location.href = page; }
+    function logout() { localStorage.clear(); window.location.href = "index.html"; }
+</script>
+</body>
+</html>

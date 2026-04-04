@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Client Dashboard</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')" class="active">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')">Payment History</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Client Dashboard</h1>
+        <p id="welcomeMessage"></p>
+
+        <div class="card">
+            <h3>Overview</h3>
+            <p>This is your client dashboard. Use the menu on the left to navigate through services, bookings, and payments.</p>
+        </div>
+
+        <div class="card-grid">
+            <div class="mini-card">
+                <h4>Services</h4>
+                <p>Browse all available consultancy services.</p>
+            </div>
+            <div class="mini-card">
+                <h4>Bookings</h4>
+                <p>Request and manage your bookings.</p>
+            </div>
+            <div class="mini-card">
+                <h4>Payments</h4>
+                <p>Process payments and view payment history.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    const userRole = localStorage.getItem("userRole");
+
+    if (userRole !== "Client") {
+        window.location.href = "index.html";
+    }
+
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+</script>
+</body>
+</html>

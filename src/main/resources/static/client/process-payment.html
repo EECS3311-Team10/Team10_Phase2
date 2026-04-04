@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Process Payment</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')" class="active">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')">Payment History</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Process Payment</h1>
+
+        <div class="card">
+            <label for="bookingSelect">Select Booking</label>
+            <select id="bookingSelect" class="input"></select>
+
+            <label for="paymentMethod">Select Payment Method</label>
+            <select id="paymentMethod" class="input">
+                <option value="">-- Choose payment method --</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="PayPal">PayPal</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+
+            <button class="primary-btn" onclick="processPayment()">Pay Now</button>
+            <p id="message" class="page-message"></p>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardClient();
+    loadPayableBookings();
+
+    function guardClient() {
+        if (localStorage.getItem("userRole") !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function loadPayableBookings() {
+        const bookingSelect = document.getElementById("bookingSelect");
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+        const userId = localStorage.getItem("userId") || "ClientUser";
+
+        const payableBookings = bookings.filter(
+            booking =>
+                booking.client === userId &&
+                (booking.status === "Confirmed" || booking.status === "Pending Payment")
+        );
+
+        bookingSelect.innerHTML = "";
+
+        if (payableBookings.length === 0) {
+            bookingSelect.innerHTML = `<option value="">No payable bookings available</option>`;
+            return;
+        }
+
+        bookingSelect.innerHTML = `<option value="">-- Choose a booking --</option>`;
+
+        payableBookings.forEach(booking => {
+            const option = document.createElement("option");
+            option.value = booking.bookingId;
+            option.textContent = `${booking.bookingId} - ${booking.service} - $${booking.price}.00`;
+            bookingSelect.appendChild(option);
+        });
+    }
+
+    function processPayment() {
+        const bookingId = document.getElementById("bookingSelect").value;
+        const paymentMethod = document.getElementById("paymentMethod").value;
+        const message = document.getElementById("message");
+        const userId = localStorage.getItem("userId") || "ClientUser";
+
+        if (!bookingId || !paymentMethod) {
+            message.innerText = "Please select a booking and a payment method.";
+            return;
+        }
+
+        let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+        let payments = JSON.parse(localStorage.getItem("payments")) || [];
+
+        const bookingIndex = bookings.findIndex(
+            booking => booking.bookingId === bookingId && booking.client === userId
+        );
+
+        if (bookingIndex === -1) {
+            message.innerText = "Booking not found.";
+            return;
+        }
+
+        const booking = bookings[bookingIndex];
+
+        bookings[bookingIndex].status = "Paid";
+        localStorage.setItem("bookings", JSON.stringify(bookings));
+
+        const paymentRecord = {
+            transactionId: "TX-" + Date.now(),
+            bookingId: booking.bookingId,
+            client: userId,
+            service: booking.service,
+            amount: booking.price,
+            method: paymentMethod,
+            status: "Successful",
+            date: new Date().toLocaleString()
+        };
+
+        payments.push(paymentRecord);
+        localStorage.setItem("payments", JSON.stringify(payments));
+
+        message.innerText = `Payment successful. Transaction ID: ${paymentRecord.transactionId}`;
+
+        document.getElementById("bookingSelect").value = "";
+        document.getElementById("paymentMethod").value = "";
+
+        loadPayableBookings();
+    }
+</script>
+</body>
+</html>
