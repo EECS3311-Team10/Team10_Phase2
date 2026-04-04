@@ -6,7 +6,8 @@ import lombok.*;
 @Entity
 @DiscriminatorValue("ADMIN")
 @Getter @Setter
-@NoArgsConstructor // Required for JPA
+@NoArgsConstructor 
+
 public class Admin extends User {
 
     private static int idCounter = 1;
