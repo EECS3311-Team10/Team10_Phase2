@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Booking Requests</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar consultant-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/consultant/consultant.html')">Dashboard</button>
+        <button onclick="go('/consultant/manage-availability.html')">Manage Availability</button>
+        <button onclick="go('/consultant/review-booking-requests.html')" class="active">Review Requests</button>
+        <button onclick="go('/consultant/complete-bookings.html')">Complete Bookings</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Booking Requests</h1>
+
+        <div class="card">
+            <ul id="requestList" class="simple-list"></ul>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardConsultant();
+    loadRequests();
+
+    function guardConsultant() {
+        if (localStorage.getItem("userRole") !== "Consultant") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function loadRequests() {
+        const requestList = document.getElementById("requestList");
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+        const requestedBookings = bookings.filter(
+            booking => booking.status === "Requested"
+        );
+
+        if (requestedBookings.length === 0) {
+            requestList.innerHTML = "<li>No booking requests found.</li>";
+            return;
+        }
+
+        requestList.innerHTML = "";
+
+        requestedBookings.forEach(booking => {
+            const li = document.createElement("li");
+
+            li.innerHTML = `
+                <strong>${booking.service}</strong><br>
+                <strong>Booking ID:</strong> ${booking.bookingId}<br>
+                <strong>Client:</strong> ${booking.client}<br>
+                <strong>Consultant:</strong> ${booking.consultant}<br>
+                <strong>Time:</strong> ${booking.timeSlot}<br>
+                <strong>Price:</strong> $${booking.price}.00<br>
+                <strong>Status:</strong> ${booking.status}<br><br>
+
+                <button class="primary-btn" onclick="acceptBooking('${booking.bookingId}')">
+                    Accept
+                </button>
+
+                <button class="primary-btn" 
+                        style="margin-left:10px;"
+                        onclick="rejectBooking('${booking.bookingId}')">
+                    Reject
+                </button>
+            `;
+
+            requestList.appendChild(li);
+        });
+    }
+
+    function acceptBooking(bookingId) {
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+        const updated = bookings.map(booking => {
+            if (booking.bookingId === bookingId) {
+                booking.status = "Pending Payment";
+            }
+            return booking;
+        });
+
+        localStorage.setItem("bookings", JSON.stringify(updated));
+        loadRequests();
+    }
+
+    function rejectBooking(bookingId) {
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+        const updated = bookings.map(booking => {
+            if (booking.bookingId === bookingId) {
+                booking.status = "Rejected";
+            }
+            return booking;
+        });
+
+        localStorage.setItem("bookings", JSON.stringify(updated));
+        loadRequests();
+    }
+</script>
+</body>
+</html>
