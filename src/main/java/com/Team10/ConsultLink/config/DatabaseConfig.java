@@ -4,7 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.Team10.ConsultLink.respository.UserRepository;
+import com.Team10.ConsultLink.repository.UserRepository;
 import com.Team10.ConsultLink.users.Admin;
 import com.Team10.ConsultLink.users.User;
 
