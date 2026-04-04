@@ -1,7 +1,8 @@
 package com.Team10.ConsultLink.controller;
 
+import com.Team10.ConsultLink.repository.UserRepository;
 import com.Team10.ConsultLink.users.*;
-import com.Team10.ConsultLink.respository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
