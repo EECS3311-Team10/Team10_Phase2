@@ -7,72 +7,71 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-
 <body>
 <div class="layout">
-
-    <!-- SIDEBAR -->
     <aside class="sidebar consultant-sidebar">
         <h2>ConsultLink</h2>
-
-    <button onclick="go('/consultant/consultant.html')" class="active">Dashboard</button>
-    <button onclick="go('/consultant/manage-availability.html')">Manage Availability</button>
-    <button onclick="go('/consultant/review-bookings.html')">Accept / Reject Booking</button>
-    <button onclick="go('/consultant/complete-bookings.html')">Complete Booking</button>
+        <button onclick="go('/consultant/consultant.html')" class="active">Dashboard</button>
+        <button onclick="go('/consultant/manage-availability.html')">Manage Availability</button>
+        <button onclick="go('/consultant/review-booking-requests.html')">Review Requests</button>
+        <button onclick="go('/consultant/complete-bookings.html')">Complete Bookings</button>
         <button onclick="logout()">Logout</button>
     </aside>
 
-
-    <!-- CONTENT -->
     <main class="content">
         <h1>Consultant Dashboard</h1>
         <p id="welcomeMessage"></p>
 
         <div class="card">
             <h3>Overview</h3>
-            <p>Use the menu to manage availability, review booking requests, and complete sessions.</p>
+            <p>
+                Use the menu on the left to manage availability, review incoming booking requests,
+                and complete paid bookings.
+            </p>
         </div>
 
         <div class="card-grid">
             <div class="mini-card">
-                <h4>Availability</h4>
-                <p>Define or update available consulting time slots.</p>
+                <h4>Manage Availability</h4>
+                <p>Add or remove available time slots.</p>
+                <button class="primary-btn" onclick="go('/consultant/manage-availability.html')">Open</button>
             </div>
 
             <div class="mini-card">
-                <h4>Booking Requests</h4>
-                <p>Accept or reject incoming booking requests.</p>
+                <h4>Review Requests</h4>
+                <p>Accept or reject new booking requests.</p>
+                <button class="primary-btn" onclick="go('/consultant/review-booking-requests.html')">Open</button>
             </div>
 
             <div class="mini-card">
-                <h4>Complete Booking</h4>
-                <p>Mark completed consulting sessions.</p>
+                <h4>Complete Bookings</h4>
+                <p>Mark paid sessions as completed.</p>
+                <button class="primary-btn" onclick="go('/consultant/complete-bookings.html')">Open</button>
             </div>
         </div>
-
     </main>
-
 </div>
 
 <script>
-const userId = localStorage.getItem("userId");
-const userRole = localStorage.getItem("userRole");
+    guardConsultant();
 
-if (userRole !== "Consultant") {
-    window.location.href = "index.html";
-}
+    function guardConsultant() {
+        if (localStorage.getItem("userRole") !== "Consultant") {
+            window.location.href = "/index.html";
+        }
+    }
 
-document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
+    const userId = localStorage.getItem("userId") || "ConsultantUser";
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
 
-function go(page) {
-    window.location.href = page;
-}
+    function go(page) {
+        window.location.href = page;
+    }
 
-function logout() {
-    localStorage.clear();
-    window.location.href = "/index.html";
-}
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
 </script>
-
 </body>
 </html>

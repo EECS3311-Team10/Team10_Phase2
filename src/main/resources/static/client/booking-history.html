@@ -61,19 +61,42 @@
 
         bookingList.innerHTML = "";
 
-        clientBookings.forEach((booking, index) => {
+        clientBookings.forEach(booking => {
             const li = document.createElement("li");
+
+            let actionButtons = "";
+
+            if (
+                booking.status === "Requested" ||
+                booking.status === "Confirmed" ||
+                booking.status === "Pending Payment"
+            ) {
+                actionButtons += `
+                    <br>
+                    <button class="primary-btn" style="margin-top:10px;" onclick="cancelBooking('${booking.bookingId}')">
+                        Cancel Booking
+                    </button>
+                `;
+            }
+
+            if (booking.status === "Pending Payment") {
+                actionButtons += `
+                    <button class="primary-btn" style="margin-top:10px; margin-left:10px;" onclick="go('/client/process-payment.html')">
+                        Go to Payment
+                    </button>
+                `;
+            }
+
             li.innerHTML = `
                 <strong>${booking.service}</strong><br>
-                Consultant: ${booking.consultant}<br>
-                Time: ${booking.timeSlot}<br>
-                Price: $${booking.price}.00<br>
-                Status: ${booking.status}
-                ${booking.status === "Requested" || booking.status === "Confirmed" || booking.status === "Pending Payment"
-                    ? `<br><button class="primary-btn" style="margin-top:10px;" onclick="cancelBooking('${booking.bookingId}')">Cancel</button>`
-                    : ""
-                }
+                <strong>Booking ID:</strong> ${booking.bookingId}<br>
+                <strong>Consultant:</strong> ${booking.consultant}<br>
+                <strong>Time:</strong> ${booking.timeSlot}<br>
+                <strong>Price:</strong> $${booking.price}.00<br>
+                <strong>Status:</strong> ${booking.status}
+                ${actionButtons}
             `;
+
             bookingList.appendChild(li);
         });
     }
