@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - System Status</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar admin-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/admin/admin.html')">Dashboard</button>
+        <button onclick="go('/admin/approve-consultant-registration.html')">Approve Consultants</button>
+        <button onclick="go('/admin/manage-policies.html')">Manage Policies</button>
+        <button onclick="go('/admin/system-status.html')" class="active">System Status</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>System Status</h1>
+
+        <div class="card-grid">
+            <div class="mini-card">
+                <h4>Total Bookings</h4>
+                <p id="totalBookings">0</p>
+            </div>
+
+            <div class="mini-card">
+                <h4>Total Payments</h4>
+                <p id="totalPayments">0</p>
+            </div>
+
+            <div class="mini-card">
+                <h4>Total Consultants</h4>
+                <p id="totalConsultants">0</p>
+            </div>
+
+            <div class="mini-card">
+                <h4>Approved Consultants</h4>
+                <p id="approvedConsultants">0</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Booking Status Summary</h3>
+            <ul id="statusSummary" class="simple-list"></ul>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardAdmin();
+    loadSystemStatus();
+
+    function guardAdmin() {
+        if (localStorage.getItem("userRole") !== "Admin") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function loadSystemStatus() {
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+        const payments = JSON.parse(localStorage.getItem("payments")) || [];
+        const consultants = JSON.parse(localStorage.getItem("consultants")) || [];
+
+        document.getElementById("totalBookings").innerText = bookings.length;
+        document.getElementById("totalPayments").innerText = payments.length;
+        document.getElementById("totalConsultants").innerText = consultants.length;
+        document.getElementById("approvedConsultants").innerText =
+            consultants.filter(c => c.status === "Approved").length;
+
+        const counts = {
+            Requested: 0,
+            "Pending Payment": 0,
+            Paid: 0,
+            Completed: 0,
+            Cancelled: 0,
+            Rejected: 0
+        };
+
+        bookings.forEach(booking => {
+            if (counts.hasOwnProperty(booking.status)) {
+                counts[booking.status]++;
+            }
+        });
+
+        const statusSummary = document.getElementById("statusSummary");
+        statusSummary.innerHTML = "";
+
+        Object.keys(counts).forEach(status => {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${status}:</strong> ${counts[status]}`;
+            statusSummary.appendChild(li);
+        });
+    }
+</script>
+</body>
+</html>

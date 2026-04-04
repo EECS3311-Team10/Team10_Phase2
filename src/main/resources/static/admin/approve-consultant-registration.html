@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Approve Consultants</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar admin-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/admin/admin.html')">Dashboard</button>
+        <button onclick="go('/admin/approve-consultant-registration.html')" class="active">Approve Consultants</button>
+        <button onclick="go('/admin/manage-policies.html')">Manage Policies</button>
+        <button onclick="go('/admin/system-status.html')">System Status</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Approve Consultants</h1>
+
+        <div class="card">
+            <ul id="consultantList" class="simple-list"></ul>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardAdmin();
+    seedConsultants();
+    loadConsultants();
+
+    function guardAdmin() {
+        if (localStorage.getItem("userRole") !== "Admin") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function seedConsultants() {
+        let consultants = JSON.parse(localStorage.getItem("consultants")) || [];
+
+        if (consultants.length === 0) {
+            consultants = [
+                {
+                    consultantId: "C-1001",
+                    name: "Jane Smith",
+                    email: "jane@example.com",
+                    specialty: "Software Consulting",
+                    status: "Pending"
+                },
+                {
+                    consultantId: "C-1002",
+                    name: "Michael Lee",
+                    email: "michael@example.com",
+                    specialty: "Career Advising",
+                    status: "Pending"
+                },
+                {
+                    consultantId: "C-1003",
+                    name: "Sarah Chen",
+                    email: "sarah@example.com",
+                    specialty: "Technical Support",
+                    status: "Pending"
+                }
+            ];
+
+            localStorage.setItem("consultants", JSON.stringify(consultants));
+        }
+    }
+
+    function loadConsultants() {
+        const consultantList = document.getElementById("consultantList");
+        const consultants = JSON.parse(localStorage.getItem("consultants")) || [];
+
+        const pendingConsultants = consultants.filter(c => c.status === "Pending");
+
+        if (pendingConsultants.length === 0) {
+            consultantList.innerHTML = "<li>No pending consultant approvals.</li>";
+            return;
+        }
+
+        consultantList.innerHTML = "";
+
+        pendingConsultants.forEach(consultant => {
+            const li = document.createElement("li");
+
+            li.innerHTML = `
+                <strong>${consultant.name}</strong><br>
+                <strong>Consultant ID:</strong> ${consultant.consultantId}<br>
+                <strong>Email:</strong> ${consultant.email}<br>
+                <strong>Specialty:</strong> ${consultant.specialty}<br>
+                <strong>Status:</strong> ${consultant.status}<br><br>
+
+                <button class="primary-btn" onclick="approveConsultant('${consultant.consultantId}')">
+                    Approve
+                </button>
+
+                <button class="primary-btn" style="margin-left:10px;" onclick="rejectConsultant('${consultant.consultantId}')">
+                    Reject
+                </button>
+            `;
+
+            consultantList.appendChild(li);
+        });
+    }
+
+    function approveConsultant(consultantId) {
+        let consultants = JSON.parse(localStorage.getItem("consultants")) || [];
+
+        consultants = consultants.map(c => {
+            if (c.consultantId === consultantId) {
+                c.status = "Approved";
+            }
+            return c;
+        });
+
+        localStorage.setItem("consultants", JSON.stringify(consultants));
+        loadConsultants();
+    }
+
+    function rejectConsultant(consultantId) {
+        let consultants = JSON.parse(localStorage.getItem("consultants")) || [];
+
+        consultants = consultants.map(c => {
+            if (c.consultantId === consultantId) {
+                c.status = "Rejected";
+            }
+            return c;
+        });
+
+        localStorage.setItem("consultants", JSON.stringify(consultants));
+        loadConsultants();
+    }
+</script>
+</body>
+</html>

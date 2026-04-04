@@ -1,46 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Manage Availability</title>
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/dashboard.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Manage Availability</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-
 <body>
 <div class="layout">
+    <aside class="sidebar consultant-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/consultant/consultant.html')">Dashboard</button>
+        <button onclick="go('/consultant/manage-availability.html')" class="active">Manage Availability</button>
+        <button onclick="go('/consultant/review-booking-requests.html')">Review Requests</button>
+        <button onclick="go('/consultant/complete-bookings.html')">Complete Bookings</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
 
-<aside class="sidebar consultant-sidebar">
-<h2>ConsultLink</h2>
+    <main class="content">
+        <h1>Manage Availability</h1>
 
-<button onclick="go('/consultant/consultant.html')" class="active">Dashboard</button>
-<button onclick="go('/consultant/manage-availability.html')">Manage Availability</button>
-<button onclick="go('/consultant/review-booking-requests.html')">Accept / Reject Booking</button>
-<button onclick="go('/consultant/complete-bookings.html')">Complete Booking</button>
-<button onclick="logout()">Logout</button>
+        <div class="card">
+            <h3>Add Time Slot</h3>
 
-</aside>
+            <label>Date</label>
+            <input type="date" id="date" class="input">
 
-<main class="content">
-<h1>Manage Availability</h1>
+            <label>Time</label>
+            <input type="time" id="time" class="input">
 
-<div class="card">
-<label>Date</label>
-<input class="input" type="date">
+            <button class="primary-btn" onclick="addSlot()">Add Slot</button>
 
-<label>Time</label>
-<input class="input" type="time">
+            <p id="message" class="page-message"></p>
+        </div>
 
-<button class="primary-btn">Add Availability</button>
-</div>
-
-</main>
+        <div class="card">
+            <h3>Available Slots</h3>
+            <ul id="slotList" class="simple-list"></ul>
+        </div>
+    </main>
 </div>
 
 <script>
-function go(page){ window.location.href = page; }
-function logout(){ localStorage.clear(); window.location.href="/index.html"; }
-</script>
+    guardConsultant();
+    loadSlots();
 
+    function guardConsultant() {
+        if (localStorage.getItem("userRole") !== "Consultant") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function addSlot() {
+        const date = document.getElementById("date").value;
+        const time = document.getElementById("time").value;
+        const message = document.getElementById("message");
+
+        if (!date || !time) {
+            message.innerText = "Please select date and time.";
+            return;
+        }
+
+        const consultant = localStorage.getItem("userId") || "ConsultantUser";
+
+        let slots = JSON.parse(localStorage.getItem("availability")) || [];
+
+        slots.push({
+            id: "SL-" + Date.now(),
+            consultant: consultant,
+            date: date,
+            time: time
+        });
+
+        localStorage.setItem("availability", JSON.stringify(slots));
+
+        message.innerText = "Time slot added.";
+        loadSlots();
+    }
+
+    function loadSlots() {
+        const slotList = document.getElementById("slotList");
+        const consultant = localStorage.getItem("userId") || "ConsultantUser";
+        const slots = JSON.parse(localStorage.getItem("availability")) || [];
+
+        const mySlots = slots.filter(s => s.consultant === consultant);
+
+        if (mySlots.length === 0) {
+            slotList.innerHTML = "<li>No slots added.</li>";
+            return;
+        }
+
+        slotList.innerHTML = "";
+
+        mySlots.forEach(slot => {
+            const li = document.createElement("li");
+
+            li.innerHTML = `
+                ${slot.date} - ${slot.time}
+                <button class="primary-btn" 
+                        style="margin-left:10px;"
+                        onclick="removeSlot('${slot.id}')">
+                        Remove
+                </button>
+            `;
+
+            slotList.appendChild(li);
+        });
+    }
+
+    function removeSlot(id) {
+        let slots = JSON.parse(localStorage.getItem("availability")) || [];
+
+        slots = slots.filter(s => s.id !== id);
+
+        localStorage.setItem("availability", JSON.stringify(slots));
+        loadSlots();
+    }
+</script>
 </body>
 </html>

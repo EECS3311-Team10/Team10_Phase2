@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - AI Assistant</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/client/client.html')">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/request-booking.html')">Request Booking</button>
+        <button onclick="go('/client/booking-history.html')">Booking History</button>
+        <button onclick="go('/client/process-payment.html')">Process Payment</button>
+        <button onclick="go('/client/payment-history.html')">Payment History</button>
+        <button onclick="go('/client/chatbot.html')" class="active">AI Assistant</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>AI Customer Assistant</h1>
+
+        <div class="card">
+            <div id="chatBox" class="dashboard-output">
+                <p><strong>Assistant:</strong> Hello! Ask me about bookings, services, payments, or platform policies.</p>
+            </div>
+
+            <label for="userQuestion">Your Question</label>
+            <input type="text" id="userQuestion" class="input" placeholder="Type your question here...">
+
+            <button class="primary-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardClient();
+
+    function guardClient() {
+        if (localStorage.getItem("userRole") !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("userQuestion");
+        const chatBox = document.getElementById("chatBox");
+        const question = input.value.trim();
+
+        if (!question) return;
+
+        appendMessage("You", question);
+
+        let answer = getDemoResponse(question);
+        appendMessage("Assistant", answer);
+
+        input.value = "";
+    }
+
+    function appendMessage(sender, text) {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${sender}:</strong> ${text}`;
+        document.getElementById("chatBox").appendChild(p);
+    }
+
+    function getDemoResponse(question) {
+        const q = question.toLowerCase();
+
+        if (q.includes("book") || q.includes("booking")) {
+            return "To book a consulting session, go to Request Booking, select a service, choose a consultant and time slot, then submit your request.";
+        }
+
+        if (q.includes("payment") || q.includes("pay")) {
+            return "You can process payment after a consultant accepts your booking. Go to Process Payment to select a booking and payment method.";
+        }
+
+        if (q.includes("service") || q.includes("services")) {
+            return "Available services include Consulting, Resume Review, and Mock Interview.";
+        }
+
+        if (q.includes("cancel")) {
+            return "You can cancel a booking from Booking History, depending on its current status and system policy.";
+        }
+
+        if (q.includes("policy") || q.includes("refund")) {
+            return "System policies such as cancellation and refund rules are managed by the admin. Please check platform policy information for details.";
+        }
+
+        return "I can help with services, booking steps, payments, cancellation, and general platform questions.";
+    }
+</script>
+</body>
+</html>

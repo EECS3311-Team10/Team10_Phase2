@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsultLink - Manage Policies</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar admin-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/admin/admin.html')">Dashboard</button>
+        <button onclick="go('/admin/approve-consultant-registration.html')">Approve Consultants</button>
+        <button onclick="go('/admin/manage-policies.html')" class="active">Manage Policies</button>
+        <button onclick="go('/admin/system-status.html')">System Status</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+        <h1>Manage Policies</h1>
+
+        <div class="card">
+            <label for="cancellationRule">Cancellation Rule</label>
+            <select id="cancellationRule" class="input">
+                <option value="24-hour notice required">24-hour notice required</option>
+                <option value="12-hour notice required">12-hour notice required</option>
+                <option value="Same-day cancellation allowed">Same-day cancellation allowed</option>
+            </select>
+
+            <label for="refundPolicy">Refund Policy</label>
+            <select id="refundPolicy" class="input">
+                <option value="Full refund">Full refund</option>
+                <option value="50% refund">50% refund</option>
+                <option value="No refund">No refund</option>
+            </select>
+
+            <label for="notificationSetting">Notification Setting</label>
+            <select id="notificationSetting" class="input">
+                <option value="Email notifications enabled">Email notifications enabled</option>
+                <option value="SMS notifications enabled">SMS notifications enabled</option>
+                <option value="Notifications disabled">Notifications disabled</option>
+            </select>
+
+            <label for="pricingStrategy">Pricing Strategy</label>
+            <select id="pricingStrategy" class="input">
+                <option value="Standard pricing">Standard pricing</option>
+                <option value="Discount pricing">Discount pricing</option>
+                <option value="Premium pricing">Premium pricing</option>
+            </select>
+
+            <button class="primary-btn" onclick="savePolicies()">Save Policies</button>
+            <p id="message" class="page-message"></p>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardAdmin();
+    loadPolicies();
+
+    function guardAdmin() {
+        if (localStorage.getItem("userRole") !== "Admin") {
+            window.location.href = "/index.html";
+        }
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+
+    function loadPolicies() {
+        const policies = JSON.parse(localStorage.getItem("policies")) || {
+            cancellationRule: "24-hour notice required",
+            refundPolicy: "Full refund",
+            notificationSetting: "Email notifications enabled",
+            pricingStrategy: "Standard pricing"
+        };
+
+        document.getElementById("cancellationRule").value = policies.cancellationRule;
+        document.getElementById("refundPolicy").value = policies.refundPolicy;
+        document.getElementById("notificationSetting").value = policies.notificationSetting;
+        document.getElementById("pricingStrategy").value = policies.pricingStrategy;
+    }
+
+    function savePolicies() {
+        const policies = {
+            cancellationRule: document.getElementById("cancellationRule").value,
+            refundPolicy: document.getElementById("refundPolicy").value,
+            notificationSetting: document.getElementById("notificationSetting").value,
+            pricingStrategy: document.getElementById("pricingStrategy").value
+        };
+
+        localStorage.setItem("policies", JSON.stringify(policies));
+        document.getElementById("message").innerText = "Policies saved successfully.";
+    }
+</script>
+</body>
+</html>

@@ -3,33 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>ConsultLink - Admin Dashboard</title>
     <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
-    <div class="container">
+<div class="layout">
+    <aside class="sidebar admin-sidebar">
+        <h2>ConsultLink</h2>
+        <button onclick="go('/admin/admin.html')" class="active">Dashboard</button>
+        <button onclick="go('/admin/approve-consultant-registration.html')">Approve Consultants</button>
+        <button onclick="go('/admin/manage-policies.html')">Manage Policies</button>
+        <button onclick="go('/admin/system-status.html')">System Status</button>
+        <button onclick="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
         <h1>Admin Dashboard</h1>
         <p id="welcomeMessage"></p>
 
-        <div class="login-box">
-            <button onclick="window.location.href='index.html'">Logout</button>
+        <div class="card">
+            <h3>Overview</h3>
+            <p>
+                Use the admin dashboard to approve consultants, manage system policies,
+                and view the overall system status.
+            </p>
         </div>
 
-        <div id="output" style="margin-top: 20px; text-align: left;"></div>
-    </div>
+        <div class="card-grid">
+            <div class="mini-card">
+                <h4>Approve Consultants</h4>
+                <p>Review and approve consultant registrations.</p>
+                <button class="primary-btn" onclick="go('/admin/approve-consultants.html')">Open</button>
+            </div>
 
-    <script>
-        const userName = localStorage.getItem("userName");
-        const userId = localStorage.getItem("userId");
-        const userRole = localStorage.getItem("userRole");
+            <div class="mini-card">
+                <h4>Manage Policies</h4>
+                <p>Update cancellation, refund, and notification rules.</p>
+                <button class="primary-btn" onclick="go('/admin/manage-policies.html')">Open</button>
+            </div>
 
-        if (userRole !== "Admin") {
-            window.location.href = "index.html";
+            <div class="mini-card">
+                <h4>System Status</h4>
+                <p>View booking and payment summary information.</p>
+                <button class="primary-btn" onclick="go('/admin/system-status.html')">Open</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    guardAdmin();
+
+    function guardAdmin() {
+        if (localStorage.getItem("userRole") !== "Admin") {
+            window.location.href = "/index.html";
         }
+    }
 
-        document.getElementById("welcomeMessage").innerText =
-            `Welcome, ${userName} (${userId})`;
-    </script>
+    const userId = localStorage.getItem("userId") || "AdminUser";
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+</script>
 </body>
 </html>
