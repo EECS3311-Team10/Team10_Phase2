@@ -56,13 +56,15 @@
     guardConsultant();
 
     function guardConsultant() {
-        if (localStorage.getItem("userRole") !== "Consultant") {
+        const role = localStorage.getItem("userRole");
+        if (!role || role.toUpperCase() !== "CONSULTANT") {
+            console.log("Access denied. Role found:", role);
             window.location.href = "/index.html";
         }
     }
 
-    const userId = localStorage.getItem("userId") || "ConsultantUser";
-    document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
+    const displayIdentity = localStorage.getItem("userName") || localStorage.getItem("userId") || "Consultant";
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${displayIdentity}`;
 
     function go(page) {
         window.location.href = page;
