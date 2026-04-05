@@ -3,21 +3,26 @@ services:
     image: postgres:15
     container_name: consultlink-db
     environment:
+      - POSTGRES_DB=consultlink
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=consultlinkdb
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d consultlink"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: .
     container_name: consultlink-backend
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy # This is the magic line
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/consultlinkdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/consultlink
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    depends_on:
-      - db
