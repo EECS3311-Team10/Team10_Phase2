@@ -1,8 +1,16 @@
 package com.Team10.ConsultLink.model;
 
-import com.Team10.ConsultLink.service.*;
-import jakarta.persistence.*; // Required for JPA annotations
 import java.time.LocalDateTime;
+
+import com.Team10.ConsultLink.service.BookingState;
+import com.Team10.ConsultLink.service.RequestedState;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "bookings")
@@ -10,31 +18,51 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Primary key for the database
+    private Long id;
 
-    private String bookingID; // Your business-logic ID
+    private String bookingID;
 
-    @Transient // We mark the State object as Transient because JPA cannot 
-               // easily store a State Pattern object in a single column.
-    private BookingState state;
+    // store client who created booking
+    private String clientUserId;
+
+    // store selected service
+    private Long serviceId;
+    private String serviceName;
+
+    // persistable status
+    private String status;
 
     private LocalDateTime requestedTime;
     private LocalDateTime scheduledTime;
+
     private double price;
 
-    // 1. Required Default Constructor for JPA
+    @Transient
+    private BookingState state;
+
     public Booking() {}
 
-    // 2. Your existing constructor
-    public Booking(String bookingID, LocalDateTime requestedTime, LocalDateTime scheduledTime, double price) {
+    public Booking(String bookingID,
+                   String clientUserId,
+                   Long serviceId,
+                   String serviceName,
+                   LocalDateTime requestedTime,
+                   LocalDateTime scheduledTime,
+                   double price) {
+
         this.bookingID = bookingID;
+        this.clientUserId = clientUserId;
+        this.serviceId = serviceId;
+        this.serviceName = serviceName;
         this.requestedTime = requestedTime;
         this.scheduledTime = scheduledTime;
         this.price = price;
+
+        this.status = "REQUESTED";
         this.state = new RequestedState();
     }
 
-    // --- State Pattern Logic ---
+    // ----- state logic -----
     public void setState(BookingState state) {
         this.state = state;
     }
@@ -50,103 +78,102 @@ public class Booking {
     public void cancel() { state.handleCancel(this); }
     public void processPayment() { state.handlePayment(this); }
 
-    // --- Getters and Setters ---
+    // ----- getters -----
     public Long getId() { return id; }
     public String getBookingID() { return bookingID; }
+    public String getClientUserId() { return clientUserId; }
+    public Long getServiceId() { return serviceId; }
+    public String getServiceName() { return serviceName; }
+    public String getStatus() { return status; }
     public LocalDateTime getRequestedTime() { return requestedTime; }
     public LocalDateTime getScheduledTime() { return scheduledTime; }
     public double getPrice() { return price; }
+
+    // ----- setters -----
+    public void setStatus(String status) { this.status = status; }
 
     @Override
     public String toString() {
         return "Booking{" +
                 "id=" + id +
                 ", bookingID='" + bookingID + '\'' +
-                ", state=" + (state != null ? state.getClass().getSimpleName() : "null") +
-                ", requestedTime=" + requestedTime +
+                ", clientUserId='" + clientUserId + '\'' +
+                ", serviceName='" + serviceName + '\'' +
+                ", status='" + status + '\'' +
                 ", scheduledTime=" + scheduledTime +
                 ", price=" + price +
                 '}';
     }
 }
-/*
-package com.Team10.ConsultLink.model;
 
-import com.Team10.ConsultLink.service.*;
-import java.time.LocalDateTime;
+// package com.Team10.ConsultLink.model;
 
-public class Booking {
-    private String bookingID;
-    private BookingState state;
-    private LocalDateTime requestedTime;
-    private LocalDateTime scheduledTime;
-    private double price;
+// import com.Team10.ConsultLink.service.*;
+// import jakarta.persistence.*; // Required for JPA annotations
+// import java.time.LocalDateTime;
 
-    public Booking(String bookingID, LocalDateTime requestedTime, LocalDateTime scheduledTime, double price) {
-        this.bookingID = bookingID;
-        this.requestedTime = requestedTime;
-        this.scheduledTime = scheduledTime;
-        this.price = price;
-        this.state = new RequestedState();
-    }
+// @Entity
+// @Table(name = "bookings")
+// public class Booking {
 
-    // State transition - getter and setter for state
-    public void setState(BookingState state) {
-        this.state = state;
-    }
+//     @Id
+//     @GeneratedValue(strategy = GenerationType.IDENTITY)
+//     private Long id; // Primary key for the database
 
-    public BookingState getState() {
-        return state;
-    }
+//     private String bookingID; // Your business-logic ID
 
-    // Forward actions to current state
-    public void request() {
-        state.handleRequest(this);
-    }
+//     @Transient // We mark the State object as Transient because JPA cannot 
+//                // easily store a State Pattern object in a single column.
+//     private BookingState state;
 
-    public void confirm() {
-        state.handleConfirm(this);
-    }
+//     private LocalDateTime requestedTime;
+//     private LocalDateTime scheduledTime;
+//     private double price;
 
-    public void reject() {
-        state.handleReject(this);
-    }
+//     // 1. Required Default Constructor for JPA
+//     public Booking() {}
 
-     public void complete() {
-        state.handleComplete(this);
-    }
-    public void cancel() {
-        state.handleCancel(this);
-    }
-    public void processPayment() {
-        state.handlePayment(this);
-    }
+//     // 2. Your existing constructor
+//     public Booking(String bookingID, LocalDateTime requestedTime, LocalDateTime scheduledTime, double price) {
+//         this.bookingID = bookingID;
+//         this.requestedTime = requestedTime;
+//         this.scheduledTime = scheduledTime;
+//         this.price = price;
+//         this.state = new RequestedState();
+//     }
 
-    // Getters and setters for other fields
-    public String getBookingID() {
-        return bookingID;
-    }
-    public LocalDateTime getRequestedTime() {
-        return requestedTime;
-    }
+//     // --- State Pattern Logic ---
+//     public void setState(BookingState state) {
+//         this.state = state;
+//     }
 
-    public LocalDateTime getScheduledTime() {
-        return scheduledTime;
-    }
+//     public BookingState getState() {
+//         return state;
+//     }
 
-    public double getPrice() {
-        return price;
-    }
+//     public void request() { state.handleRequest(this); }
+//     public void confirm() { state.handleConfirm(this); }
+//     public void reject() { state.handleReject(this); }
+//     public void complete() { state.handleComplete(this); }
+//     public void cancel() { state.handleCancel(this); }
+//     public void processPayment() { state.handlePayment(this); }
 
-    @Override
-    public String toString() {
-        return "Booking{" +
-                "bookingID='" + bookingID + '\'' +
-                ", state=" + state.getClass().getSimpleName() +
-                ", requestedTime=" + requestedTime +
-                ", scheduledTime=" + scheduledTime +
-                ", price=" + price +
-                '}';
-    }
-}
-*/
+//     // --- Getters and Setters ---
+//     public Long getId() { return id; }
+//     public String getBookingID() { return bookingID; }
+//     public LocalDateTime getRequestedTime() { return requestedTime; }
+//     public LocalDateTime getScheduledTime() { return scheduledTime; }
+//     public double getPrice() { return price; }
+
+//     @Override
+//     public String toString() {
+//         return "Booking{" +
+//                 "id=" + id +
+//                 ", bookingID='" + bookingID + '\'' +
+//                 ", state=" + (state != null ? state.getClass().getSimpleName() : "null") +
+//                 ", requestedTime=" + requestedTime +
+//                 ", scheduledTime=" + scheduledTime +
+//                 ", price=" + price +
+//                 '}';
+//     }
+// }

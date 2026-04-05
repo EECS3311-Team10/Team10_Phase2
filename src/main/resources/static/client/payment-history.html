@@ -25,14 +25,21 @@
         <h1>Payment History</h1>
         <div class="card">
             <ul id="paymentList" class="simple-list"></ul>
+            <p id="message" class="page-message"></p>
         </div>
     </main>
 </div>
 
 <script>
-
+    guardClient();
     loadPayments();
 
+    function guardClient() {
+        const role = localStorage.getItem("userRole");
+        if (role !== "CLIENT" && role !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
@@ -43,33 +50,59 @@
         window.location.href = "/index.html";
     }
 
-    function loadPayments() {
+    async function loadPayments() {
         const paymentList = document.getElementById("paymentList");
-        const payments = JSON.parse(localStorage.getItem("payments")) || [];
-        const userId = localStorage.getItem("userId") || "ClientUser";
+        const message = document.getElementById("message");
+        const userId = localStorage.getItem("userId");
 
-        const clientPayments = payments.filter(payment => payment.client === userId);
+        paymentList.innerHTML = "";
+        message.innerText = "Loading payment history...";
 
-        if (clientPayments.length === 0) {
-            paymentList.innerHTML = "<li>No payment history found.</li>";
+        if (!userId) {
+            message.innerText = "No logged-in client found.";
+            message.style.color = "red";
             return;
         }
 
-        paymentList.innerHTML = "";
+        try {
+            const response = await fetch(`/api/bookings/client/${userId}`);
 
-        clientPayments.forEach(payment => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-                <strong>Transaction ID:</strong> ${payment.transactionId}<br>
-                <strong>Booking ID:</strong> ${payment.bookingId}<br>
-                <strong>Service:</strong> ${payment.service}<br>
-                <strong>Amount:</strong> $${payment.amount}.00<br>
-                <strong>Method:</strong> ${payment.method}<br>
-                <strong>Status:</strong> ${payment.status}<br>
-                <strong>Date:</strong> ${payment.date}
-            `;
-            paymentList.appendChild(li);
-        });
+            if (!response.ok) {
+                message.innerText = "Failed to load payment history.";
+                message.style.color = "red";
+                return;
+            }
+
+            const bookings = await response.json();
+
+            const paidBookings = bookings.filter(
+                booking => booking.status === "PAID" || booking.status === "COMPLETED"
+            );
+
+            if (paidBookings.length === 0) {
+                message.innerText = "No payment history found.";
+                return;
+            }
+
+            message.innerText = "";
+
+            paidBookings.forEach(booking => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <strong>Booking ID:</strong> ${booking.bookingID}<br>
+                    <strong>Service:</strong> ${booking.serviceName || "Service"}<br>
+                    <strong>Amount:</strong> $${Number(booking.price).toFixed(2)}<br>
+                    <strong>Status:</strong> ${booking.status}<br>
+                    <strong>Scheduled Time:</strong> ${booking.scheduledTime}
+                `;
+                paymentList.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error loading payment history:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

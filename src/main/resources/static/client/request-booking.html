@@ -26,27 +26,21 @@
 
         <div class="card">
             <label for="service">Select Service</label>
-            <select id="service" class="input">
-                <option value="">-- Choose a service --</option>
-                <option value="Consulting">Consulting — Intro session — $100.00</option>
-                <option value="Resume Review">Resume Review — 30-min review — $60.00</option>
-                <option value="Mock Interview">Mock Interview — 45-min interview — $120.00</option>
-            </select>
+            <select id="service" class="input"></select>
 
             <label for="consultant">Select Consultant</label>
             <select id="consultant" class="input">
                 <option value="">-- Choose a consultant --</option>
-                <option value="Jane Smith">Jane Smith</option>
-                <option value="Michael Lee">Michael Lee</option>
                 <option value="Sarah Chen">Sarah Chen</option>
+                <option value="Marcus Thorne">Marcus Thorne</option>
             </select>
 
             <label for="timeSlot">Select Time Slot</label>
             <select id="timeSlot" class="input">
                 <option value="">-- Choose a time slot --</option>
-                <option value="2026-04-05 10:00 AM">2026-04-05 10:00 AM</option>
-                <option value="2026-04-05 02:00 PM">2026-04-05 02:00 PM</option>
-                <option value="2026-04-06 11:00 AM">2026-04-06 11:00 AM</option>
+                <option value="2026-04-05T10:00:00">2026-04-05 10:00 AM</option>
+                <option value="2026-04-05T14:00:00">2026-04-05 02:00 PM</option>
+                <option value="2026-04-06T11:00:00">2026-04-06 11:00 AM</option>
             </select>
 
             <button class="primary-btn" onclick="submitBooking()">Submit Booking Request</button>
@@ -56,6 +50,17 @@
 </div>
 
 <script>
+    let loadedServices = [];
+
+    guardClient();
+    loadServices();
+
+    function guardClient() {
+        const role = localStorage.getItem("userRole");
+        if (role !== "CLIENT" && role !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
@@ -66,43 +71,103 @@
         window.location.href = "/index.html";
     }
 
-    function submitBooking() {
-        const service = document.getElementById("service").value;
+    async function loadServices() {
+        const serviceSelect = document.getElementById("service");
+        const message = document.getElementById("message");
+
+        serviceSelect.innerHTML = `<option value="">-- Choose a service --</option>`;
+
+        try {
+            const response = await fetch("/api/services");
+
+            if (!response.ok) {
+                message.innerText = "Failed to load services.";
+                message.style.color = "red";
+                return;
+            }
+
+            loadedServices = await response.json();
+
+            loadedServices.forEach(service => {
+                const option = document.createElement("option");
+                option.value = service.id;
+                option.textContent = `${service.name} — ${service.description} — $${service.price.toFixed(2)}`;
+                option.dataset.name = service.name;
+                option.dataset.price = service.price;
+                serviceSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error("Error loading services:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
+    }
+
+    async function submitBooking() {
+        const serviceSelect = document.getElementById("service");
         const consultant = document.getElementById("consultant").value;
         const timeSlot = document.getElementById("timeSlot").value;
         const message = document.getElementById("message");
-        const userId = localStorage.getItem("userId") || "ClientUser";
+        const userId = localStorage.getItem("userId");
 
-        if (!service || !consultant || !timeSlot) {
-            message.innerText = "Please select a service, consultant, and time slot.";
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        const serviceId = serviceSelect.value;
+        const serviceName = selectedOption ? selectedOption.dataset.name : "";
+        const price = selectedOption ? Number(selectedOption.dataset.price) : 0;
+
+        if (!userId) {
+            message.innerText = "No logged-in client found.";
+            message.style.color = "red";
             return;
         }
 
-        let price = 0;
-        if (service === "Consulting") price = 100;
-        if (service === "Resume Review") price = 60;
-        if (service === "Mock Interview") price = 120;
+        if (!serviceId || !consultant || !timeSlot) {
+            message.innerText = "Please select a service, consultant, and time slot.";
+            message.style.color = "red";
+            return;
+        }
 
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-
-        const newBooking = {
-            bookingId: "BK-" + Date.now(),
-            client: userId,
-            service: service,
-            consultant: consultant,
-            timeSlot: timeSlot,
+        const bookingData = {
+            bookingID: "BK-" + Date.now(),
+            clientUserId: userId,
+            serviceId: Number(serviceId),
+            serviceName: serviceName,
+            requestedTime: new Date().toISOString(),
+            scheduledTime: timeSlot,
             price: price,
-            status: "Requested"
+            status: "REQUESTED"
         };
 
-        bookings.push(newBooking);
-        localStorage.setItem("bookings", JSON.stringify(bookings));
+        try {
+            const response = await fetch("/api/bookings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bookingData)
+            });
 
-        message.innerText = `Booking request submitted successfully. Booking ID: ${newBooking.bookingId}`;
+            if (!response.ok) {
+                message.innerText = "Failed to submit booking.";
+                message.style.color = "red";
+                return;
+            }
 
-        document.getElementById("service").value = "";
-        document.getElementById("consultant").value = "";
-        document.getElementById("timeSlot").value = "";
+            const savedBooking = await response.json();
+
+            message.innerText = `Booking submitted successfully. Booking ID: ${savedBooking.bookingID}`;
+            message.style.color = "green";
+
+            document.getElementById("service").value = "";
+            document.getElementById("consultant").value = "";
+            document.getElementById("timeSlot").value = "";
+
+        } catch (error) {
+            console.error("Error creating booking:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

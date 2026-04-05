@@ -44,97 +44,104 @@
 </div>
 
 <script>
+guardClient();
+loadPayableBookings();
 
-    loadPayableBookings();
-
-
-
-    function go(page) {
-        window.location.href = page;
-    }
-
-    function logout() {
-        localStorage.clear();
+function guardClient() {
+    const role = localStorage.getItem("userRole");
+    if (role !== "CLIENT" && role !== "Client") {
         window.location.href = "/index.html";
     }
+}
 
-    function loadPayableBookings() {
-        const bookingSelect = document.getElementById("bookingSelect");
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-        const userId = localStorage.getItem("userId") || "ClientUser";
+function go(page) {
+    window.location.href = page;
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "/index.html";
+}
+
+async function loadPayableBookings() {
+    const bookingSelect = document.getElementById("bookingSelect");
+    const message = document.getElementById("message");
+    const userId = localStorage.getItem("userId");
+
+    bookingSelect.innerHTML = "<option>Loading...</option>";
+
+    try {
+        const response = await fetch(`/api/bookings/client/${userId}`);
+
+        if (!response.ok) {
+            message.innerText = "Failed to load bookings.";
+            return;
+        }
+
+        const bookings = await response.json();
 
         const payableBookings = bookings.filter(
-            booking =>
-                booking.client === userId &&
-                (booking.status === "Confirmed" || booking.status === "Pending Payment")
+            b => b.status === "PENDING_PAYMENT"
         );
 
         bookingSelect.innerHTML = "";
 
         if (payableBookings.length === 0) {
-            bookingSelect.innerHTML = `<option value="">No payable bookings available</option>`;
+            bookingSelect.innerHTML =
+                `<option value="">No payable bookings available</option>`;
             return;
         }
 
-        bookingSelect.innerHTML = `<option value="">-- Choose a booking --</option>`;
+        bookingSelect.innerHTML =
+            `<option value="">-- Choose a booking --</option>`;
 
         payableBookings.forEach(booking => {
             const option = document.createElement("option");
-            option.value = booking.bookingId;
-            option.textContent = `${booking.bookingId} - ${booking.service} - $${booking.price}.00`;
+            option.value = booking.id;
+            option.textContent =
+                `${booking.bookingID} - ${booking.serviceName} - $${booking.price.toFixed(2)}`;
             bookingSelect.appendChild(option);
         });
+
+    } catch (error) {
+        console.error(error);
+        message.innerText = "Cannot connect to backend.";
+    }
+}
+
+async function processPayment() {
+    const bookingId = document.getElementById("bookingSelect").value;
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    const message = document.getElementById("message");
+
+    if (!bookingId || !paymentMethod) {
+        message.innerText =
+            "Please select a booking and a payment method.";
+        return;
     }
 
-    function processPayment() {
-        const bookingId = document.getElementById("bookingSelect").value;
-        const paymentMethod = document.getElementById("paymentMethod").value;
-        const message = document.getElementById("message");
-        const userId = localStorage.getItem("userId") || "ClientUser";
-
-        if (!bookingId || !paymentMethod) {
-            message.innerText = "Please select a booking and a payment method.";
-            return;
-        }
-
-        let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-        let payments = JSON.parse(localStorage.getItem("payments")) || [];
-
-        const bookingIndex = bookings.findIndex(
-            booking => booking.bookingId === bookingId && booking.client === userId
+    try {
+        const response = await fetch(
+            `/api/bookings/${bookingId}/pay`,
+            { method: "PUT" }
         );
 
-        if (bookingIndex === -1) {
-            message.innerText = "Booking not found.";
+        if (!response.ok) {
+            message.innerText = "Payment failed.";
             return;
         }
 
-        const booking = bookings[bookingIndex];
-
-        bookings[bookingIndex].status = "Paid";
-        localStorage.setItem("bookings", JSON.stringify(bookings));
-
-        const paymentRecord = {
-            transactionId: "TX-" + Date.now(),
-            bookingId: booking.bookingId,
-            client: userId,
-            service: booking.service,
-            amount: booking.price,
-            method: paymentMethod,
-            status: "Successful",
-            date: new Date().toLocaleString()
-        };
-
-        payments.push(paymentRecord);
-        localStorage.setItem("payments", JSON.stringify(payments));
-
-        message.innerText = `Payment successful. Transaction ID: ${paymentRecord.transactionId}`;
-
-        document.getElementById("bookingSelect").value = "";
-        document.getElementById("paymentMethod").value = "";
+        message.innerText = "Payment successful!";
+        message.style.color = "green";
 
         loadPayableBookings();
+
+    } catch (error) {
+        console.error(error);
+        message.innerText = "Cannot connect to backend.";
     }
+}
 </script>
+
 </body>
 </html>
