@@ -36,7 +36,7 @@
 
     function guardClient() {
         const role = sessionStorage.getItem("userRole");
-        if (role !== "CLIENT" && role !== "Client") {
+        if (!role || role.toUpperCase() !== "CLIENT") {
             window.location.href = "/index.html";
         }
     }
@@ -65,7 +65,7 @@
         }
 
         try {
-            const response = await fetch(`/api/bookings/client/${userId}`);
+            const response = await fetch(`/api/payments/client/${userId}`);
 
             if (!response.ok) {
                 message.innerText = "Failed to load payment history.";
@@ -73,28 +73,40 @@
                 return;
             }
 
-            const bookings = await response.json();
+            const payments = await response.json();
 
-            const paidBookings = bookings.filter(
-                booking => booking.status === "PAID" || booking.status === "COMPLETED"
-            );
-
-            if (paidBookings.length === 0) {
+            if (!payments || payments.length === 0) {
                 message.innerText = "No payment history found.";
                 return;
             }
 
+            payments.sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+
             message.innerText = "";
 
-            paidBookings.forEach(booking => {
+            payments.forEach(payment => {
+                let color = "black";
+
+                if (payment.status === "PAID") color = "green";
+                if (payment.status === "FAILED") color = "red";
+                if (payment.status === "PENDING") color = "orange";
+
                 const li = document.createElement("li");
+
                 li.innerHTML = `
-                    <strong>Booking ID:</strong> ${booking.bookingID}<br>
-                    <strong>Service:</strong> ${booking.serviceName || "Service"}<br>
-                    <strong>Amount:</strong> $${Number(booking.price).toFixed(2)}<br>
-                    <strong>Status:</strong> ${booking.status}<br>
-                    <strong>Scheduled Time:</strong> ${booking.scheduledTime}
+                    <strong>Payment ID:</strong> ${payment.paymentID || "N/A"}<br>
+                    <strong>Transaction ID:</strong> ${payment.transactionID || "N/A"}<br>
+                    <strong>Booking ID:</strong> ${payment.bookingID || "N/A"}<br>
+                    <strong>Service:</strong> ${payment.serviceName || "Service"}<br>
+                    <strong>Amount:</strong> $${Number(payment.price || 0).toFixed(2)}<br>
+                    <strong>Method:</strong> ${payment.method || "N/A"}<br>
+                    <strong>Status:</strong>
+                    <span style="color:${color}; font-weight:bold;">
+                        ${payment.status || "UNKNOWN"}
+                    </span><br>
+                    <strong>Payment Date:</strong> ${payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : "N/A"}
                 `;
+
                 paymentList.appendChild(li);
             });
 

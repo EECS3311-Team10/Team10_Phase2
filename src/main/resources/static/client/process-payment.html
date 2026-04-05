@@ -1,147 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConsultLink - Process Payment</title>
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/dashboard.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConsultLink - Process Payment</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/dashboard.css">
 </head>
+
 <body>
 <div class="layout">
-    <aside class="sidebar">
-        <h2>ConsultLink</h2>
-        <button onclick="go('/client/client.html')">Dashboard</button>
-        <button onclick="go('/client/browse-services.html')">Browse Services</button>
-        <button onclick="go('/client/request-booking.html')">Request Booking</button>
-        <button onclick="go('/client/booking-history.html')">Booking History</button>
-        <button onclick="go('/client/process-payment.html')" class="active">Process Payment</button>
-        <button onclick="go('/client/payment-history.html')">Payment History</button>
-        <button onclick="go('/client/chatbot.html')">AI Assistant</button>
-        <button onclick="logout()">Logout</button>
-    </aside>
+<aside class="sidebar">
+<h2>ConsultLink</h2>
+<button onclick="go('/client/client.html')">Dashboard</button>
+<button onclick="go('/client/browse-services.html')">Browse Services</button>
+<button onclick="go('/client/request-booking.html')">Request Booking</button>
+<button onclick="go('/client/booking-history.html')">Booking History</button>
+<button onclick="go('/client/process-payment.html')" class="active">Process Payment</button>
+<button onclick="go('/client/payment-history.html')">Payment History</button>
+<button onclick="go('/client/chatbot.html')">AI Assistant</button>
+<button onclick="logout()">Logout</button>
+</aside>
 
-    <main class="content">
-        <h1>Process Payment</h1>
+<main class="content">
+<h1>Process Payment</h1>
 
-        <div class="card">
-            <label for="bookingSelect">Select Booking</label>
-            <select id="bookingSelect" class="input"></select>
+<div class="card">
 
-            <label for="paymentMethod">Select Payment Method</label>
-            <select id="paymentMethod" class="input">
-                <option value="">-- Choose payment method --</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Debit Card">Debit Card</option>
-                <option value="PayPal">PayPal</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-            </select>
+<label>Select Booking</label>
+<select id="bookingSelect" class="input"></select>
 
-            <button class="primary-btn" onclick="processPayment()">Pay Now</button>
-            <p id="message" class="page-message"></p>
-        </div>
-    </main>
+<label>Payment Method</label>
+<select id="paymentMethod" class="input" onchange="toggleFields()">
+<option value="">-- choose --</option>
+<option value="CREDIT">Credit Card</option>
+<option value="DEBIT">Debit Card</option>
+<option value="PAYPAL">PayPal</option>
+<option value="BANK">Bank Transfer</option>
+</select>
+
+<div id="paymentFields"></div>
+
+<button class="primary-btn" onclick="processPayment()">Pay Now</button>
+<p id="message"></p>
+
+</div>
+</main>
 </div>
 
 <script>
-guardClient();
-loadPayableBookings();
 
-function guardClient() {
-    const role = sessionStorage.getItem("userRole");
-    if (role !== "CLIENT" && role !== "Client") {
-        window.location.href = "/index.html";
-    }
+loadBookings();
+
+function go(p){window.location.href=p;}
+function logout(){sessionStorage.clear();window.location.href="/index.html";}
+
+async function loadBookings(){
+const res = await fetch(`/api/bookings/client/${sessionStorage.getItem("userId")}`);
+const data = await res.json();
+const select = document.getElementById("bookingSelect");
+
+data.filter(b=>b.status==="PENDING_PAYMENT")
+.forEach(b=>{
+const o=document.createElement("option");
+o.value=b.id;
+o.textContent=b.bookingID+" - $"+b.price;
+select.appendChild(o);
+});
 }
 
-function go(page) {
-    window.location.href = page;
+function toggleFields(){
+const method=document.getElementById("paymentMethod").value;
+const div=document.getElementById("paymentFields");
+
+if(method==="CREDIT"||method==="DEBIT"){
+div.innerHTML=`
+<input placeholder="Card Number" id="cardNumber" class="input">
+<input placeholder="Holder Name" id="holderName" class="input">
+<input placeholder="Expiry (YYYY-MM)" id="expiry" class="input">
+<input placeholder="CVV" id="cvv" class="input">
+`;
+}
+else if(method==="PAYPAL"){
+div.innerHTML=`<input placeholder="PayPal Email" id="email" class="input">`;
+}
+else if(method==="BANK"){
+div.innerHTML=`
+<input placeholder="Account Number" id="accountNumber" class="input">
+<input placeholder="Account Name" id="accountName" class="input">
+<input placeholder="Routing Number" id="routingNumber" class="input">
+<input placeholder="Address" id="address" class="input">
+`;
+}
+else{
+div.innerHTML="";
+}
 }
 
-function logout() {
-    sessionStorage.clear();
-    window.location.href = "/index.html";
+async function processPayment(){
+
+const bookingId=document.getElementById("bookingSelect").value;
+const method=document.getElementById("paymentMethod").value;
+
+let payload={method:method};
+
+if(method==="CREDIT"||method==="DEBIT"){
+payload.cardNumber=document.getElementById("cardNumber").value;
+payload.holderName=document.getElementById("holderName").value;
+payload.expiry=document.getElementById("expiry").value;
+payload.cvv=document.getElementById("cvv").value;
 }
 
-async function loadPayableBookings() {
-    const bookingSelect = document.getElementById("bookingSelect");
-    const message = document.getElementById("message");
-    const userId = sessionStorage.getItem("userId");
-
-    bookingSelect.innerHTML = "<option>Loading...</option>";
-
-    try {
-        const response = await fetch(`/api/bookings/client/${userId}`);
-
-        if (!response.ok) {
-            message.innerText = "Failed to load bookings.";
-            return;
-        }
-
-        const bookings = await response.json();
-
-        const payableBookings = bookings.filter(
-            b => b.status === "PENDING_PAYMENT"
-        );
-
-        bookingSelect.innerHTML = "";
-
-        if (payableBookings.length === 0) {
-            bookingSelect.innerHTML =
-                `<option value="">No payable bookings available</option>`;
-            return;
-        }
-
-        bookingSelect.innerHTML =
-            `<option value="">-- Choose a booking --</option>`;
-
-        payableBookings.forEach(booking => {
-            const option = document.createElement("option");
-            option.value = booking.id;
-            option.textContent =
-                `${booking.bookingID} - ${booking.serviceName} - $${booking.price.toFixed(2)}`;
-            bookingSelect.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error(error);
-        message.innerText = "Cannot connect to backend.";
-    }
+if(method==="PAYPAL"){
+payload.email=document.getElementById("email").value;
 }
 
-async function processPayment() {
-    const bookingId = document.getElementById("bookingSelect").value;
-    const paymentMethod = document.getElementById("paymentMethod").value;
-    const message = document.getElementById("message");
-
-    if (!bookingId || !paymentMethod) {
-        message.innerText =
-            "Please select a booking and a payment method.";
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            `/api/bookings/${bookingId}/pay`,
-            { method: "PUT" }
-        );
-
-        if (!response.ok) {
-            message.innerText = "Payment failed.";
-            return;
-        }
-
-        message.innerText = "Payment successful!";
-        message.style.color = "green";
-
-        loadPayableBookings();
-
-    } catch (error) {
-        console.error(error);
-        message.innerText = "Cannot connect to backend.";
-    }
+if(method==="BANK"){
+payload.accountNumber=document.getElementById("accountNumber").value;
+payload.accountName=document.getElementById("accountName").value;
+payload.routingNumber=document.getElementById("routingNumber").value;
+payload.address=document.getElementById("address").value;
 }
+
+const res=await fetch(`/api/payments/${bookingId}`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+
+if(res.ok){
+document.getElementById("message").innerText="Payment successful";
+}else{
+document.getElementById("message").innerText="Payment failed";
+}
+}
+
 </script>
-
 </body>
 </html>
