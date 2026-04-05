@@ -28,14 +28,9 @@
 </div>
 
 <script>
-    guardConsultant();
+
     loadPaidBookings();
 
-    function guardConsultant() {
-        if (localStorage.getItem("userRole") !== "Consultant") {
-            window.location.href = "/index.html";
-        }
-    }
 
     function go(page) {
         window.location.href = page;
