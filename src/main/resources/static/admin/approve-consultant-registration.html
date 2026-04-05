@@ -28,15 +28,11 @@
 </div>
 
 <script>
-    guardAdmin();
+
     seedConsultants();
     loadConsultants();
 
-    function guardAdmin() {
-        if (localStorage.getItem("userRole") !== "Admin") {
-            window.location.href = "/index.html";
-        }
-    }
+
 
     function go(page) {
         window.location.href = page;
