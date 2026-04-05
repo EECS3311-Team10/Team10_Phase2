@@ -1,5 +1,4 @@
-package com.Team10.ConsultLink.model; // Adjust package if needed
-
+package com.Team10.ConsultLink.model; 
 import jakarta.persistence.*;
 
 @Entity
