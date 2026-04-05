@@ -1,29 +1,38 @@
 package com.Team10.ConsultLink.users;
 
-import com.Team10.ConsultLink.service.*;
 import com.Team10.ConsultLink.model.*;
-
-import java.time.*;
+import com.Team10.ConsultLink.service.*;
+import jakarta.persistence.*;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Entity
+@Table(name = "clients")
 public class Client extends User {
 
-    private static int idCounter = 1;
+    // One Client can have many Bookings
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private List<Booking> bookings = new ArrayList<>();
 
-    private List<PaymentMethod> paymentMethods;
-    private List<Booking> bookings;
-    private List<Payment> paymentHistory;
+    // One Client can have many Payment Methods
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private List<PaymentMethod> paymentMethods = new ArrayList<>();
 
-    public Client(String name, String email, String phone) {
-        super(name, email, phone, "Client");
-        this.setRole("Client");
-        this.paymentMethods = new ArrayList<>();
-        this.bookings = new ArrayList<>();
-        this.paymentHistory = new ArrayList<>();
-        this.userId = "CL-" + idCounter++;
+    // One Client has a history of many Payments
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private List<Payment> paymentHistory = new ArrayList<>();
+
+    public Client() { super(); }
+
+    public Client(String userId, String name, String email, String phone, String password) {
+        super(userId, name, email, phone, "CLIENT", password);
     }
+
+    // --- UML Methods ---
 
     public void requestBooking(Booking booking) {
         this.bookings.add(booking);
@@ -37,64 +46,52 @@ public class Client extends User {
         return this.bookings;
     }
 
+    // Logic for Strategy Pattern
     public void processPayment(Payment payment, PaymentStrategy strategy) {
-        //payment(strategy); 
+        strategy.pay(payment.getPrice()); 
+        addPayment(payment);
     }
 
     public List<PaymentMethod> getPaymentMethods() {
         return this.paymentMethods;
     }
 
-    // methods for adding paymentMethods
-    // credit card and debit card
-    public boolean addPaymentMethod(String paymentType, String cardNumber, YearMonth expiryDate,
-            String cvv, String cardHolderName) {
+    // --- Payment Method Overloads ---
 
-        if (paymentType.equals("CREDIT")) {
-            CreditCard creditCard = new CreditCard(cardNumber, cardHolderName,
-                    expiryDate, cvv);
-            if (!creditCard.validate()) {
-                return false;
+    public boolean addPaymentMethod(String paymentType, String cardNumber, YearMonth expiryDate,
+                                 String cvv, String cardHolderName) {
+        if (paymentType.equalsIgnoreCase("CREDIT")) {
+            CreditCard card = new CreditCard(cardNumber, cardHolderName, expiryDate, cvv);
+            if (card.validate()) {
+                paymentMethods.add(card);
+                return true;
             }
-            paymentMethods.add(creditCard);
-            System.out.println("Your credit card payment method was added.");
-            // notification
-        } else if (paymentType.equals("DEBIT")) {
-            DebitCard debitCard = new DebitCard(cardNumber, cardHolderName,
-                    expiryDate, cvv);
-            if (!debitCard.validate()) {
-                return false;
+        } else if (paymentType.equalsIgnoreCase("DEBIT")) {
+            DebitCard card = new DebitCard(cardNumber, cardHolderName, expiryDate, cvv);
+            if (card.validate()) {
+                paymentMethods.add(card);
+                return true;
             }
-            paymentMethods.add(debitCard);
-            System.out.println("Your debit card payment method was added.");
         }
-        return true;
+        return false;
     }
 
-    // bank transfer
     public boolean addPaymentMethod(String accountNumber, String address, String accountName, String routingNumber) {
-        BankTransfer bankTransfer = new BankTransfer(accountNumber, address, accountName, routingNumber);
-        if (!bankTransfer.validate()) {
-            return false;
+        BankTransfer bt = new BankTransfer(accountNumber, address, accountName, routingNumber);
+        if (bt.validate()) {
+            paymentMethods.add(bt);
+            return true;
         }
-        paymentMethods.add(bankTransfer);
-        System.out.println("Your new payment method was added.");
-        // notification
-        paymentMethods.add(bankTransfer);
-        System.out.println("Your bank account as a payment method has been added");
-
-        return true;
+        return false;
     }
 
     public boolean addPaymentMethod(String email) {
-        PayPal payPal = new PayPal(email);
-        if (!payPal.validate()) {
-            return false;
+        PayPal pp = new PayPal(email);
+        if (pp.validate()) {
+            paymentMethods.add(pp);
+            return true;
         }
-        paymentMethods.add(payPal);
-        System.out.println("Your PayPal as a payment method has been added");
-
-        return true;
+        return false;
     }
 
     public void addPayment(Payment payment) {
