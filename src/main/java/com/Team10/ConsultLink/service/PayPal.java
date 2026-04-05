@@ -1,20 +1,31 @@
-package com.Team10.ConsultLink.service;
-import com.Team10.ConsultLink.model.*;
+package com.Team10.ConsultLink.service; // Ensure this matches your folder!
 
-public class PayPal extends PaymentMethod{
+import com.Team10.ConsultLink.model.*;
+import jakarta.persistence.Entity;
+
+@Entity
+public class PayPal extends PaymentMethod {
+
     private String email;
+
+    public PayPal() { super(); }
+
     public PayPal(String email) {
-        super("PayPal");
+        super();
+        this.setPaymentType("PAYPAL");
         this.email = email;
+    }
+
+    // THIS FIXES THE ERROR: Matches the UML method signature
+    public String getPaymentDetails() {
+        return "PayPal Account: " + this.email;
     }
 
     @Override
     public boolean validate() {
-        // checks if email is a valid email
-        return email != null && email.contains("@") && email.length() > 5 ; //smallest email a@b.cd
+        return email != null && email.contains("@");
     }
-    @Override
-    public String getPaymentDetails() {
-        return "PayPal: " + email;
-    }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
