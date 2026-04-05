@@ -1,6 +1,37 @@
 package com.Team10.ConsultLink.model;
+
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "payments")
+public class Payment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private double price;
+    private LocalDateTime paymentDate;
+    private String status;
+
+    // Default Constructor (Required by JPA)
+    public Payment() {}
+
+    public Payment(double price) {
+        this.price = price;
+        this.paymentDate = LocalDateTime.now();
+        this.status = "COMPLETED";
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+}
+
+
+/* 
 public class Payment {
 
     private String paymentID;
@@ -70,3 +101,4 @@ public class Payment {
                 '}';
     }
 }
+*/
