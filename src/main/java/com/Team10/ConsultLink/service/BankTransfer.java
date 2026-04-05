@@ -1,15 +1,21 @@
 package com.Team10.ConsultLink.service;
 
-import com.Team10.ConsultLink.model.PaymentMethod;
+import com.Team10.ConsultLink.model.*;
+import jakarta.persistence.Entity;
 
-public class BankTransfer extends PaymentMethod{
+@Entity
+public class BankTransfer extends PaymentMethod {
+
     private String accountNumber;
     private String address;
     private String accountName;
     private String routingNumber;
 
+    public BankTransfer() { super(); }
+
     public BankTransfer(String accountNumber, String address, String accountName, String routingNumber) {
-        super("Bank Transfer");
+        super();
+        this.setPaymentType("BANK_TRANSFER");
         this.accountNumber = accountNumber;
         this.address = address;
         this.accountName = accountName;
@@ -18,11 +24,10 @@ public class BankTransfer extends PaymentMethod{
 
     @Override
     public boolean validate() {
-        // validate is bank transfer possible
-        return accountName != null && !accountName.isBlank();
+        return accountNumber != null && routingNumber != null;
     }
-    @Override
-    public String getPaymentDetails() {
-        return "BankTransfer: " + accountName + " / acct " + accountNumber;
-    }
+
+    // Getters and Setters
+    public String getAccountNumber() { return accountNumber; }
+    public String getRoutingNumber() { return routingNumber; }
 }
