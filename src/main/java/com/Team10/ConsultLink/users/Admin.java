@@ -1,21 +1,18 @@
 package com.Team10.ConsultLink.users;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("ADMIN")
-@Getter @Setter
-@NoArgsConstructor 
-
 public class Admin extends User {
 
-    private static int idCounter = 1;
+    public Admin() { super(); }
 
-    public Admin(String name, String email, String phone) {
-        super(name, email, phone, "Admin");
-        this.setRole("Admin");
-        this.userId = "AD-" + idCounter++;
+    public Admin(String userId, String name, String email, String phone, String password) {
+        super(userId, name, email, phone, "ADMIN", password);
+    }
+
+    public void defineSystemPolicies() {
+        // Logic for system policies
     }
 }
 /* 
