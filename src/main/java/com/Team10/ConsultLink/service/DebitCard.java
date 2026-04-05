@@ -1,43 +1,31 @@
 package com.Team10.ConsultLink.service;
+
 import com.Team10.ConsultLink.model.*;
 
-import java.time.*;
+import jakarta.persistence.Entity;
+import java.time.YearMonth;
 
+@Entity
 public class DebitCard extends PaymentMethod {
 
     private String cardNumber;
     private String cardHolderName;
-    private YearMonth expiryDate;
+    private String expiryDate;
     private String cvv;
 
+    public DebitCard() { super(); }
+
     public DebitCard(String cardNumber, String cardHolderName, YearMonth expiryDate, String cvv) {
-        super("Debit Card");
+        super();
+        this.setPaymentType("DEBIT");
         this.cardNumber = cardNumber;
         this.cardHolderName = cardHolderName;
-        this.expiryDate = expiryDate;
+        this.expiryDate = expiryDate.toString();
         this.cvv = cvv;
     }
 
     @Override
     public boolean validate() {
-        // Implement validation logic for debit card
-
-        boolean validated = true;
-        //verify card number length = 16
-        String s = String.valueOf(this.cardNumber);
-        if (s.length() != 16) {
-            validated = false;
-        }
-        //verify expiryDate >> current date
-        if (expiryDate.isBefore(YearMonth.now())) {
-            validated = false;
-        }
-
-        return validated;
-    }
-
-    @Override
-    public String getPaymentDetails() {
-        return "Debit Card: " + cardNumber;
+        return cardNumber != null && cardNumber.length() >= 13;
     }
 }
