@@ -1,4 +1,5 @@
-package com.Team10.ConsultLink.users;
+/*
+]package com.Team10.ConsultLink.users;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,3 +20,4 @@ public class UserRegistry {
         return null; // No user found with that ID
     }
 }
+*/
