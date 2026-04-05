@@ -8,31 +8,32 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // 1. Kill the CSRF wall so your form works
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/index.html", "/css/**").permitAll() // 2. Let people see the login page
-                .anyRequest().authenticated() // 3. Lock everything else
-            )
-            .formLogin(form -> form
-                .loginPage("/index.html")
-                .defaultSuccessUrl("/admin/admin.html", true) // 4. Tell it where to go!
-                .permitAll()
-            );
-        return http.build();
-    }
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable()) // Stops 403 on POST
+        .authorizeHttpRequests(auth -> auth
+            // The "Universal Access" rule:
+            .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/api/users/**").permitAll()
+            .requestMatchers("/admin/**", "/client/**", "/consultant/**").permitAll() 
+            // Change this to permitAll() just to test if it's the culprit
+            .anyRequest().permitAll() 
+        )
+        // Completely disable all built-in Spring login/logout redirects
+        .formLogin(form -> form.disable())
+        .httpBasic(basic -> basic.disable())
+        .logout(logout -> logout.disable());
+
+    return http.build();
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Since you saved "admin123" as plain text in the DB, we use NoOp for now
-        // (In a real project, you'd use BCrypt)
+        // Required because your dummy data uses plain text "admin123"
         return NoOpPasswordEncoder.getInstance(); 
     }
 }
