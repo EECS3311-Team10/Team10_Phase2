@@ -53,16 +53,21 @@
 </div>
 
 <script>
+    // Run the guard immediately
     guardAdmin();
 
     function guardAdmin() {
-        if (localStorage.getItem("userRole") !== "Admin") {
+        const role = localStorage.getItem("userRole");
+        // Use .toUpperCase() to ensure "ADMIN" matches "Admin" or "admin"
+        if (!role || role.toUpperCase() !== "ADMIN") {
+            console.log("Access denied. Role found:", role);
             window.location.href = "/index.html";
         }
     }
 
-    const userId = localStorage.getItem("userId") || "AdminUser";
-    document.getElementById("welcomeMessage").innerText = `Welcome, ${userId}`;
+    // Pull the name we saved during login
+    const userName = localStorage.getItem("userName") || "Admin";
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${userName}`;
 
     function go(page) {
         window.location.href = page;
