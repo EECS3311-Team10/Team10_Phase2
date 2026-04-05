@@ -26,10 +26,10 @@ public class DatabaseConfig {
                 System.out.println("📝 Database is empty. Creating default admin...");
                 
                 // For User constructor (email, password, role)
-                User admin = new Admin("admin@yorku.ca", "password123", "ADMIN");
+                User admin = new Admin("AD-1", "System Admin", "admin@consultlink.com", "555-0199", "admin123");
                 
                 repository.save(admin); // This sends the data to Docker
-                System.out.println("✅ Default admin created: admin@yorku.ca");
+                System.out.println("✅ Default admin created: admin@consultlink.com");
             } else {
                 System.out.println("📊 Database already contains " + repository.count() + " users.");
             }
