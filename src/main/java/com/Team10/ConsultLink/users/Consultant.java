@@ -18,11 +18,12 @@ public class Consultant extends User {
 
     public Consultant() { super(); }
     
-    // Updated constructor
-    public Consultant(String userId, String name, String email, String phone, String password, boolean isApproved) {
-        super(userId, name, email, phone, "CONSULTANT", password);
-        this.isApproved = isApproved;
-    }
+ 
+    public Consultant(String userId, String name, String email, String phone, String password) {
+    
+    super(userId, name, email, phone, "CONSULTANT", password); 
+    this.isApproved = true; // Every dummy consultant starts as "Verified"
+}
     
     // ... rest of your methods (acceptBooking, rejectBooking, etc.)
 }
