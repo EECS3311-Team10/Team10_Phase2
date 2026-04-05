@@ -1,31 +1,36 @@
 package com.Team10.ConsultLink.users;
-import com.Team10.ConsultLink.model.*;
 
+import com.Team10.ConsultLink.model.*; // Import Booking and Service
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List; // THIS FIXES THE LIST ERROR
 
-import java.util.*;
-
-
+@Entity
 public class Consultant extends User {
 
-    private static int idCounter = 1;
+    private boolean isApproved;
 
-    private boolean isApproved = false;
-    private ArrayList<Booking> bookings;
-    private ArrayList<Service> services;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Booking> bookings = new ArrayList<>();
 
-    public Consultant(String name, String email, String phone) {
-        super(name, email, phone, "Consultant");
-        this.setRole("Consultant");
-        this.bookings = new ArrayList<>();
-        this.services = new ArrayList<>();
-        this.userId = "CO-" + idCounter++;
+    @ManyToMany
+    private List<Service> services = new ArrayList<>();
+
+    public Consultant() { super(); }
+    
+    // Updated constructor
+    public Consultant(String userId, String name, String email, String phone, String password, boolean isApproved) {
+        super(userId, name, email, phone, "CONSULTANT", password);
+        this.isApproved = isApproved;
     }
-
+    
+    // ... rest of your methods (acceptBooking, rejectBooking, etc.)
+}
     /* 
   public void manageAvailability(){
 
   }
-     */
+     
     public List<Booking> getPendingBookingRequests() {
         return null;
     }
@@ -96,3 +101,4 @@ public class Consultant extends User {
     }
 
 }
+*/
