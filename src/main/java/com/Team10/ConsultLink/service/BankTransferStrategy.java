@@ -10,7 +10,7 @@ public class BankTransferStrategy implements PaymentStrategy {
     }
     
     @Override
-    public void pay() {
+    public void pay(double amount) {
         System.out.println("Processing payment through bank transfer...");
     }
 
