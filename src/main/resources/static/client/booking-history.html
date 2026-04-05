@@ -30,14 +30,9 @@
 </div>
 
 <script>
-    guardClient();
+
     loadBookings();
 
-    function guardClient() {
-        if (localStorage.getItem("userRole") !== "Client") {
-            window.location.href = "/index.html";
-        }
-    }
 
     function go(page) {
         window.location.href = page;
