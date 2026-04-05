@@ -56,7 +56,7 @@
     loadServices();
 
     function guardClient() {
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         if (role !== "CLIENT" && role !== "Client") {
             window.location.href = "/index.html";
         }
@@ -67,7 +67,7 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
@@ -109,7 +109,7 @@
         const consultant = document.getElementById("consultant").value;
         const timeSlot = document.getElementById("timeSlot").value;
         const message = document.getElementById("message");
-        const userId = localStorage.getItem("userId");
+        const userId = sessionStorage.getItem("userId");
 
         const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
         const serviceId = serviceSelect.value;

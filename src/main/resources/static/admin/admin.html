@@ -57,7 +57,7 @@
     guardAdmin();
 
     function guardAdmin() {
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         // Use .toUpperCase() to ensure "ADMIN" matches "Admin" or "admin"
         if (!role || role.toUpperCase() !== "ADMIN") {
             console.log("Access denied. Role found:", role);
@@ -66,7 +66,7 @@
     }
 
     // Pull the name we saved during login
-    const userName = localStorage.getItem("userName") || "Admin";
+    const userName = sessionStorage.getItem("userName") || "Admin";
     document.getElementById("welcomeMessage").innerText = `Welcome, ${userName}`;
 
     function go(page) {
@@ -74,7 +74,7 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 </script>

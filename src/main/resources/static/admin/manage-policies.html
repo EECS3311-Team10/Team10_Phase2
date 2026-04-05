@@ -61,7 +61,7 @@
     loadPolicies();
 
     function guardAdmin() {
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         if (role !== "ADMIN" && role !== "Admin") {
             window.location.href = "/index.html";
         }
@@ -72,7 +72,7 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 

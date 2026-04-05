@@ -38,7 +38,7 @@ guardClient();
 loadServices();
 
 function guardClient() {
-    const role = localStorage.getItem("userRole");
+    const role = sessionStorage.getItem("userRole");
     if (role !== "CLIENT" && role !== "Client") {
         window.location.href = "/index.html";
     }
@@ -49,7 +49,7 @@ function go(page) {
 }
 
 function logout() {
-    localStorage.clear();
+    sessionStorage.clear();
     window.location.href = "/index.html";
 }
 

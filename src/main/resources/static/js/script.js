@@ -22,9 +22,9 @@ async function login() {
         if (response.ok) {
             const user = await response.json();
 
-            localStorage.setItem("userId", user.userId || user.userID);
-            localStorage.setItem("userName", user.name);
-            localStorage.setItem("userRole", user.role);
+            sessionStorage.setItem("userId", user.userId || user.userID);
+            sessionStorage.setItem("userName", user.name);
+            sessionStorage.setItem("userRole", user.role);
 
             status.innerText = "Success! Entering dashboard...";
             status.style.color = "green";

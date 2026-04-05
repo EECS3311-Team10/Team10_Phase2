@@ -35,7 +35,7 @@
     loadPayments();
 
     function guardClient() {
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         if (role !== "CLIENT" && role !== "Client") {
             window.location.href = "/index.html";
         }
@@ -46,14 +46,14 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
     async function loadPayments() {
         const paymentList = document.getElementById("paymentList");
         const message = document.getElementById("message");
-        const userId = localStorage.getItem("userId");
+        const userId = sessionStorage.getItem("userId");
 
         paymentList.innerHTML = "";
         message.innerText = "Loading payment history...";
