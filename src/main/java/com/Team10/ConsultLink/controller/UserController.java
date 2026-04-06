@@ -103,11 +103,18 @@ public class UserController {
 
         User user = userRepository.findById(id).orElse(null);
 
-        if (!(user instanceof Consultant consultant)) {
-            return ResponseEntity.badRequest().body("Not consultant");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
         }
 
-        consultant.setApproved(false);
-        return ResponseEntity.ok(userRepository.save(consultant));
+        if (!(user instanceof Consultant)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("User is not a consultant");
+        }
+
+        userRepository.deleteById(id);
+
+        return ResponseEntity.ok("Consultant registration rejected and deleted");
     }
 }
