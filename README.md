@@ -8,9 +8,9 @@ deployment with Docker.
 https://github.com/EECS3311-Team10/Team10_Phase2.git
 
 ## Run Locally
-Get API key from https://console.groq.com/
-Paste API key into .env.example 
-Rename .env.example to .env
+1. Get API key from https://console.groq.com/  
+2. Paste API key into .env.example  
+3. Rename .env.example to .env 
 
 Run the following command from terminal:
 docker-compose up  or docker-compose up --build
