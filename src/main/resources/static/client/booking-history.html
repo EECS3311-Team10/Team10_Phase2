@@ -87,11 +87,17 @@
 
                 let actionButtons = "";
 
-                if (
-                    booking.status === "REQUESTED" ||
-                    booking.status === "CONFIRMED" ||
-                    booking.status === "PENDING_PAYMENT"
-                ) {
+                const scheduled = new Date(booking.scheduledTime);
+                const now = new Date();
+                const hoursRemaining = (scheduled - now) / (1000 * 60 * 60);
+
+                const canCancel =
+                    hoursRemaining >= 24 &&
+                    booking.status !== "COMPLETED" &&
+                    booking.status !== "CANCELLED" &&
+                    booking.status !== "REJECTED";
+
+                if (canCancel) {
                     actionButtons += `
                         <br>
                         <button class="primary-btn" style="margin-top:10px;" onclick="cancelBooking(${booking.id})">
