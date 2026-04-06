@@ -23,93 +23,138 @@
 
         <div class="card">
             <ul id="requestList" class="simple-list"></ul>
+            <p id="message" class="page-message"></p>
         </div>
     </main>
 </div>
 
 <script>
-
+    guardConsultant();
     loadRequests();
 
-
+    function guardConsultant() {
+        const role = sessionStorage.getItem("userRole");
+        if (role !== "CONSULTANT" && role !== "Consultant") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
-    function loadRequests() {
+    async function loadRequests() {
         const requestList = document.getElementById("requestList");
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-
-        const requestedBookings = bookings.filter(
-            booking => booking.status === "Requested"
-        );
-
-        if (requestedBookings.length === 0) {
-            requestList.innerHTML = "<li>No booking requests found.</li>";
-            return;
-        }
+        const message = document.getElementById("message");
 
         requestList.innerHTML = "";
+        message.innerText = "Loading requests...";
 
-        requestedBookings.forEach(booking => {
-            const li = document.createElement("li");
+        try {
+            const response = await fetch("/api/bookings");
 
-            li.innerHTML = `
-                <strong>${booking.service}</strong><br>
-                <strong>Booking ID:</strong> ${booking.bookingId}<br>
-                <strong>Client:</strong> ${booking.client}<br>
-                <strong>Consultant:</strong> ${booking.consultant}<br>
-                <strong>Time:</strong> ${booking.timeSlot}<br>
-                <strong>Price:</strong> $${booking.price}.00<br>
-                <strong>Status:</strong> ${booking.status}<br><br>
+            if (!response.ok) {
+                message.innerText = "Failed to load booking requests.";
+                message.style.color = "red";
+                return;
+            }
 
-                <button class="primary-btn" onclick="acceptBooking('${booking.bookingId}')">
-                    Accept
-                </button>
+            const bookings = await response.json();
 
-                <button class="primary-btn" 
-                        style="margin-left:10px;"
-                        onclick="rejectBooking('${booking.bookingId}')">
-                    Reject
-                </button>
-            `;
+            const requestedBookings = bookings.filter(
+                booking => booking.status === "REQUESTED"
+            );
 
-            requestList.appendChild(li);
-        });
+            if (requestedBookings.length === 0) {
+                message.innerText = "No booking requests found.";
+                return;
+            }
+
+            message.innerText = "";
+
+            requestedBookings.forEach(booking => {
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    <strong>${booking.serviceName || "Service"}</strong><br>
+                    <strong>Booking ID:</strong> ${booking.bookingID}<br>
+                    <strong>Client:</strong> ${booking.clientUserId}<br>
+                    <strong>Time:</strong> ${booking.scheduledTime}<br>
+                    <strong>Price:</strong> $${Number(booking.price).toFixed(2)}<br>
+                    <strong>Status:</strong> ${booking.status}<br><br>
+
+                    <button class="primary-btn" onclick="acceptBooking(${booking.id})">
+                        Accept
+                    </button>
+
+                    <button class="primary-btn" style="margin-left:10px;" onclick="rejectBooking(${booking.id})">
+                        Reject
+                    </button>
+                `;
+
+                requestList.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error loading booking requests:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 
-    function acceptBooking(bookingId) {
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    async function acceptBooking(bookingId) {
+        const message = document.getElementById("message");
 
-        const updated = bookings.map(booking => {
-            if (booking.bookingId === bookingId) {
-                booking.status = "Pending Payment";
+        try {
+            const response = await fetch(`/api/bookings/${bookingId}/confirm`, {
+                method: "PUT"
+            });
+
+            if (!response.ok) {
+                message.innerText = "Failed to accept booking.";
+                message.style.color = "red";
+                return;
             }
-            return booking;
-        });
 
-        localStorage.setItem("bookings", JSON.stringify(updated));
-        loadRequests();
+            message.innerText = "Booking accepted.";
+            message.style.color = "green";
+            loadRequests();
+
+        } catch (error) {
+            console.error("Error accepting booking:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 
-    function rejectBooking(bookingId) {
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    async function rejectBooking(bookingId) {
+        const message = document.getElementById("message");
 
-        const updated = bookings.map(booking => {
-            if (booking.bookingId === bookingId) {
-                booking.status = "Rejected";
+        try {
+            const response = await fetch(`/api/bookings/${bookingId}/reject`, {
+                method: "PUT"
+            });
+
+            if (!response.ok) {
+                message.innerText = "Failed to reject booking.";
+                message.style.color = "red";
+                return;
             }
-            return booking;
-        });
 
-        localStorage.setItem("bookings", JSON.stringify(updated));
-        loadRequests();
+            message.innerText = "Booking rejected.";
+            message.style.color = "green";
+            loadRequests();
+
+        } catch (error) {
+            console.error("Error rejecting booking:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

@@ -44,83 +44,97 @@
 
 <script>
 
-    loadSlots();
+loadSlots();
 
+function go(page) {
+    window.location.href = page;
+}
 
-    function go(page) {
-        window.location.href = page;
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "/index.html";
+}
+
+async function addSlot() {
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const message = document.getElementById("message");
+
+    if (!date || !time) {
+        message.innerText = "Please select date and time.";
+        return;
     }
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = "/index.html";
-    }
+    const consultantUserId = sessionStorage.getItem("userId");
 
-    function addSlot() {
-        const date = document.getElementById("date").value;
-        const time = document.getElementById("time").value;
-        const message = document.getElementById("message");
-
-        if (!date || !time) {
-            message.innerText = "Please select date and time.";
-            return;
-        }
-
-        const consultant = localStorage.getItem("userId") || "ConsultantUser";
-
-        let slots = JSON.parse(localStorage.getItem("availability")) || [];
-
-        slots.push({
-            id: "SL-" + Date.now(),
-            consultant: consultant,
-            date: date,
-            time: time
+    try {
+        await fetch("/api/availability", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                consultantUserId: consultantUserId,
+                date: date,
+                time: time
+            })
         });
-
-        localStorage.setItem("availability", JSON.stringify(slots));
 
         message.innerText = "Time slot added.";
         loadSlots();
+
+    } catch (error) {
+        console.error(error);
+        message.innerText = "Error adding slot.";
     }
+}
 
-    function loadSlots() {
-        const slotList = document.getElementById("slotList");
-        const consultant = localStorage.getItem("userId") || "ConsultantUser";
-        const slots = JSON.parse(localStorage.getItem("availability")) || [];
+async function loadSlots() {
+    const slotList = document.getElementById("slotList");
+    const consultantUserId = sessionStorage.getItem("userId");
 
-        const mySlots = slots.filter(s => s.consultant === consultant);
+    try {
+        const response = await fetch(
+            `/api/availability/consultant/${consultantUserId}`
+        );
 
-        if (mySlots.length === 0) {
+        const slots = await response.json();
+
+        if (slots.length === 0) {
             slotList.innerHTML = "<li>No slots added.</li>";
             return;
         }
 
         slotList.innerHTML = "";
 
-        mySlots.forEach(slot => {
+        slots.forEach(slot => {
             const li = document.createElement("li");
 
             li.innerHTML = `
                 ${slot.date} - ${slot.time}
-                <button class="primary-btn" 
+                <button class="primary-btn"
                         style="margin-left:10px;"
-                        onclick="removeSlot('${slot.id}')">
+                        onclick="removeSlot(${slot.id})">
                         Remove
                 </button>
             `;
 
             slotList.appendChild(li);
         });
+
+    } catch (error) {
+        console.error(error);
     }
+}
 
-    function removeSlot(id) {
-        let slots = JSON.parse(localStorage.getItem("availability")) || [];
+async function removeSlot(id) {
+    await fetch(`/api/availability/${id}`, {
+        method: "DELETE"
+    });
 
-        slots = slots.filter(s => s.id !== id);
+    loadSlots();
+}
 
-        localStorage.setItem("availability", JSON.stringify(slots));
-        loadSlots();
-    }
 </script>
 </body>
 </html>

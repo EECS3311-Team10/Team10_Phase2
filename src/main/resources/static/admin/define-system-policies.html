@@ -61,7 +61,7 @@
     loadPolicies();
 
     function guardAdmin() {
-        if (localStorage.getItem("userRole") !== "Admin") {
+        if (sessionStorage.getItem("userRole") !== "Admin") {
             window.location.href = "/index.html";
         }
     }
@@ -71,12 +71,12 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
     function loadPolicies() {
-        const policies = JSON.parse(localStorage.getItem("policies")) || {
+        const policies = JSON.parse(sessionStorage.getItem("policies")) || {
             cancellationRule: "24-hour notice required",
             refundPolicy: "Full refund",
             notificationSetting: "Email notifications enabled",
@@ -97,7 +97,7 @@
             pricingStrategy: document.getElementById("pricingStrategy").value
         };
 
-        localStorage.setItem("policies", JSON.stringify(policies));
+        sessionStorage.setItem("policies", JSON.stringify(policies));
         document.getElementById("message").innerText = "Policies saved successfully.";
     }
 </script>

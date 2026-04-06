@@ -23,73 +23,109 @@
 
         <div class="card">
             <ul id="completeList" class="simple-list"></ul>
+            <p id="message" class="page-message"></p>
         </div>
     </main>
 </div>
 
 <script>
-
+    guardConsultant();
     loadPaidBookings();
 
+    function guardConsultant() {
+        const role = sessionStorage.getItem("userRole");
+        if (role !== "CONSULTANT" && role !== "Consultant") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
-    function loadPaidBookings() {
+    async function loadPaidBookings() {
         const list = document.getElementById("completeList");
-        const consultant = localStorage.getItem("userId") || "ConsultantUser";
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-
-        const paidBookings = bookings.filter(
-            b => b.status === "Paid" && b.consultant === consultant
-        );
-
-        if (paidBookings.length === 0) {
-            list.innerHTML = "<li>No paid bookings to complete.</li>";
-            return;
-        }
+        const message = document.getElementById("message");
 
         list.innerHTML = "";
+        message.innerText = "Loading paid bookings...";
 
-        paidBookings.forEach(booking => {
-            const li = document.createElement("li");
+        try {
+            const response = await fetch("/api/bookings");
 
-            li.innerHTML = `
-                <strong>${booking.service}</strong><br>
-                Booking ID: ${booking.bookingId}<br>
-                Client: ${booking.client}<br>
-                Time: ${booking.timeSlot}<br>
-                Price: $${booking.price}.00<br>
-                Status: ${booking.status}<br><br>
+            if (!response.ok) {
+                message.innerText = "Failed to load bookings.";
+                message.style.color = "red";
+                return;
+            }
 
-                <button class="primary-btn" 
-                        onclick="completeBooking('${booking.bookingId}')">
-                    Mark Completed
-                </button>
-            `;
+            const bookings = await response.json();
 
-            list.appendChild(li);
-        });
+            const paidBookings = bookings.filter(
+                b => b.status === "PAID"
+            );
+
+            if (paidBookings.length === 0) {
+                message.innerText = "No paid bookings to complete.";
+                return;
+            }
+
+            message.innerText = "";
+
+            paidBookings.forEach(booking => {
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    <strong>${booking.serviceName || "Service"}</strong><br>
+                    <strong>Booking ID:</strong> ${booking.bookingID}<br>
+                    <strong>Client:</strong> ${booking.clientUserId}<br>
+                    <strong>Time:</strong> ${booking.scheduledTime}<br>
+                    <strong>Price:</strong> $${Number(booking.price).toFixed(2)}<br>
+                    <strong>Status:</strong> ${booking.status}<br><br>
+
+                    <button class="primary-btn" onclick="completeBooking(${booking.id})">
+                        Mark Completed
+                    </button>
+                `;
+
+                list.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error loading paid bookings:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 
-    function completeBooking(bookingId) {
-        let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    async function completeBooking(bookingId) {
+        const message = document.getElementById("message");
 
-        bookings = bookings.map(b => {
-            if (b.bookingId === bookingId) {
-                b.status = "Completed";
+        try {
+            const response = await fetch(`/api/bookings/${bookingId}/complete`, {
+                method: "PUT"
+            });
+
+            if (!response.ok) {
+                message.innerText = "Failed to complete booking.";
+                message.style.color = "red";
+                return;
             }
-            return b;
-        });
 
-        localStorage.setItem("bookings", JSON.stringify(bookings));
-        loadPaidBookings();
+            message.innerText = "Booking marked as completed.";
+            message.style.color = "green";
+            loadPaidBookings();
+
+        } catch (error) {
+            console.error("Error completing booking:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

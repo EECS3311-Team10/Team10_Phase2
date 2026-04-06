@@ -25,90 +25,131 @@
         <h1>Booking History</h1>
         <div class="card">
             <ul id="bookingList" class="simple-list"></ul>
+            <p id="message" class="page-message"></p>
         </div>
     </main>
 </div>
 
 <script>
-
+    guardClient();
     loadBookings();
 
+    function guardClient() {
+        const role = sessionStorage.getItem("userRole");
+        if (role !== "CLIENT" && role !== "Client") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
-    function loadBookings() {
+    async function loadBookings() {
         const bookingList = document.getElementById("bookingList");
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-        const userId = localStorage.getItem("userId") || "ClientUser";
+        const message = document.getElementById("message");
+        const userId = sessionStorage.getItem("userId");
 
-        const clientBookings = bookings.filter(b => b.client === userId);
+        bookingList.innerHTML = "";
+        message.innerText = "Loading bookings...";
 
-        if (clientBookings.length === 0) {
-            bookingList.innerHTML = "<li>No bookings found.</li>";
+        if (!userId) {
+            message.innerText = "No logged-in client found.";
+            message.style.color = "red";
             return;
         }
 
-        bookingList.innerHTML = "";
+        try {
+            const response = await fetch(`/api/bookings/client/${userId}`);
 
-        clientBookings.forEach(booking => {
-            const li = document.createElement("li");
-
-            let actionButtons = "";
-
-            if (
-                booking.status === "Requested" ||
-                booking.status === "Confirmed" ||
-                booking.status === "Pending Payment"
-            ) {
-                actionButtons += `
-                    <br>
-                    <button class="primary-btn" style="margin-top:10px;" onclick="cancelBooking('${booking.bookingId}')">
-                        Cancel Booking
-                    </button>
-                `;
+            if (!response.ok) {
+                message.innerText = "Failed to load booking history.";
+                message.style.color = "red";
+                return;
             }
 
-            if (booking.status === "Pending Payment") {
-                actionButtons += `
-                    <button class="primary-btn" style="margin-top:10px; margin-left:10px;" onclick="go('/client/process-payment.html')">
-                        Go to Payment
-                    </button>
-                `;
+            const bookings = await response.json();
+
+            if (!bookings || bookings.length === 0) {
+                message.innerText = "No bookings found.";
+                return;
             }
 
-            li.innerHTML = `
-                <strong>${booking.service}</strong><br>
-                <strong>Booking ID:</strong> ${booking.bookingId}<br>
-                <strong>Consultant:</strong> ${booking.consultant}<br>
-                <strong>Time:</strong> ${booking.timeSlot}<br>
-                <strong>Price:</strong> $${booking.price}.00<br>
-                <strong>Status:</strong> ${booking.status}
-                ${actionButtons}
-            `;
+            message.innerText = "";
 
-            bookingList.appendChild(li);
-        });
+            bookings.forEach(booking => {
+                const li = document.createElement("li");
+
+                let actionButtons = "";
+
+                if (
+                    booking.status === "REQUESTED" ||
+                    booking.status === "CONFIRMED" ||
+                    booking.status === "PENDING_PAYMENT"
+                ) {
+                    actionButtons += `
+                        <br>
+                        <button class="primary-btn" style="margin-top:10px;" onclick="cancelBooking(${booking.id})">
+                            Cancel Booking
+                        </button>
+                    `;
+                }
+
+                if (booking.status === "PENDING_PAYMENT") {
+                    actionButtons += `
+                        <button class="primary-btn" style="margin-top:10px; margin-left:10px;" onclick="go('/client/process-payment.html')">
+                            Go to Payment
+                        </button>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <strong>${booking.serviceName || "Service"}</strong><br>
+                    <strong>Booking ID:</strong> ${booking.bookingID}<br>
+                    <strong>Time:</strong> ${booking.scheduledTime}<br>
+                    <strong>Price:</strong> $${Number(booking.price).toFixed(2)}<br>
+                    <strong>Status:</strong> ${booking.status}
+                    ${actionButtons}
+                `;
+
+                bookingList.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error loading bookings:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 
-    function cancelBooking(bookingId) {
-        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    async function cancelBooking(bookingId) {
+        const message = document.getElementById("message");
 
-        const updatedBookings = bookings.map(booking => {
-            if (booking.bookingId === bookingId) {
-                booking.status = "Cancelled";
+        try {
+            const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+                method: "PUT"
+            });
+
+            if (!response.ok) {
+                message.innerText = "Failed to cancel booking.";
+                message.style.color = "red";
+                return;
             }
-            return booking;
-        });
 
-        localStorage.setItem("bookings", JSON.stringify(updatedBookings));
-        loadBookings();
+            message.innerText = "Booking cancelled successfully.";
+            message.style.color = "green";
+            loadBookings();
+
+        } catch (error) {
+            console.error("Error cancelling booking:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

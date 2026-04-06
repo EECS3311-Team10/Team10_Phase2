@@ -51,7 +51,7 @@
     guardClient();
 
     function guardClient() {
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         // Normalize to uppercase so "CLIENT" matches "Client" or "client"
         if (!role || role.toUpperCase() !== "CLIENT") {
             console.log("Access denied. Role found:", role);
@@ -60,7 +60,7 @@
     }
 
     // Use userName for a friendlier greeting if you saved it in script.js
-    const displayIdentity = localStorage.getItem("userName") || localStorage.getItem("userId") || "Client";
+    const displayIdentity = sessionStorage.getItem("userName") || sessionStorage.getItem("userId") || "Client";
     document.getElementById("welcomeMessage").innerText = `Welcome, ${displayIdentity}`;
 
     function go(page) {
@@ -68,7 +68,7 @@
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 </script>

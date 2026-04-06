@@ -57,32 +57,55 @@
 </div>
 
 <script>
+    guardAdmin();
     loadPolicies();
+
+    function guardAdmin() {
+        const role = sessionStorage.getItem("userRole");
+        if (role !== "ADMIN" && role !== "Admin") {
+            window.location.href = "/index.html";
+        }
+    }
 
     function go(page) {
         window.location.href = page;
     }
 
     function logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/index.html";
     }
 
-    function loadPolicies() {
-        const policies = JSON.parse(localStorage.getItem("policies")) || {
-            cancellationRule: "24-hour notice required",
-            refundPolicy: "Full refund",
-            notificationSetting: "Email notifications enabled",
-            pricingStrategy: "Standard pricing"
-        };
+    async function loadPolicies() {
+        const message = document.getElementById("message");
 
-        document.getElementById("cancellationRule").value = policies.cancellationRule;
-        document.getElementById("refundPolicy").value = policies.refundPolicy;
-        document.getElementById("notificationSetting").value = policies.notificationSetting;
-        document.getElementById("pricingStrategy").value = policies.pricingStrategy;
+        try {
+            const response = await fetch("/api/policies");
+
+            if (!response.ok) {
+                message.innerText = "Failed to load policies.";
+                message.style.color = "red";
+                return;
+            }
+
+            const policies = await response.json();
+
+            document.getElementById("cancellationRule").value = policies.cancellationRule;
+            document.getElementById("refundPolicy").value = policies.refundPolicy;
+            document.getElementById("notificationSetting").value = policies.notificationSetting;
+            document.getElementById("pricingStrategy").value = policies.pricingStrategy;
+
+            message.innerText = "";
+        } catch (error) {
+            console.error("Error loading policies:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 
-    function savePolicies() {
+    async function savePolicies() {
+        const message = document.getElementById("message");
+
         const policies = {
             cancellationRule: document.getElementById("cancellationRule").value,
             refundPolicy: document.getElementById("refundPolicy").value,
@@ -90,8 +113,28 @@
             pricingStrategy: document.getElementById("pricingStrategy").value
         };
 
-        localStorage.setItem("policies", JSON.stringify(policies));
-        document.getElementById("message").innerText = "Policies saved successfully.";
+        try {
+            const response = await fetch("/api/policies", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(policies)
+            });
+
+            if (!response.ok) {
+                message.innerText = "Failed to save policies.";
+                message.style.color = "red";
+                return;
+            }
+
+            message.innerText = "Policies saved successfully.";
+            message.style.color = "green";
+        } catch (error) {
+            console.error("Error saving policies:", error);
+            message.innerText = "Cannot connect to backend.";
+            message.style.color = "red";
+        }
     }
 </script>
 </body>

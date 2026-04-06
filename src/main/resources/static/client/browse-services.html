@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConsultLink - Services</title>
+    <title>ConsultLink - Browse Services</title>
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
+
 <div class="layout">
     <aside class="sidebar">
         <h2>ConsultLink</h2>
-        <button onclick="go('/client/client.html')" class="active">Dashboard</button>
-        <button onclick="go('/client/browse-services.html')">Browse Services</button>
+        <button onclick="go('/client/client.html')">Dashboard</button>
+        <button onclick="go('/client/browse-services.html')" class="active">Browse Services</button>
         <button onclick="go('/client/request-booking.html')">Request Booking</button>
         <button onclick="go('/client/booking-history.html')">Booking History</button>
         <button onclick="go('/client/process-payment.html')">Process Payment</button>
@@ -23,21 +24,77 @@
 
     <main class="content">
         <h1>Browse Services</h1>
+
         <div class="card">
-            <ul class="simple-list">
-                <li><strong>Consulting</strong> — Intro session — $100.00</li>
-                <li><strong>Resume Review</strong> — 30-min review — $60.00</li>
-                <li><strong>Mock Interview</strong> — 45-min interview — $120.00</li>
-            </ul>
+            <ul id="serviceList" class="simple-list"></ul>
+            <p id="statusMessage"></p>
         </div>
     </main>
 </div>
 
 <script>
 
+guardClient();
+loadServices();
 
-    function go(page) { window.location.href = page; }
-    function logout() { localStorage.clear(); window.location.href = "index.html"; }
+function guardClient() {
+    const role = sessionStorage.getItem("userRole");
+    if (role !== "CLIENT" && role !== "Client") {
+        window.location.href = "/index.html";
+    }
+}
+
+function go(page) {
+    window.location.href = page;
+}
+
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "/index.html";
+}
+
+async function loadServices() {
+    const list = document.getElementById("serviceList");
+    const status = document.getElementById("statusMessage");
+
+    list.innerHTML = "";
+    status.innerText = "Loading services...";
+
+    try {
+        const response = await fetch("/api/services");
+
+        if (!response.ok) {
+            status.innerText = "Failed to load services.";
+            status.style.color = "red";
+            return;
+        }
+
+        const services = await response.json();
+        status.innerText = "";
+
+        if (!services || services.length === 0) {
+            status.innerText = "No services available.";
+            return;
+        }
+
+        services.forEach(service => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <strong>${service.name}</strong>
+                — ${service.description}
+                — $${service.price.toFixed(2)}
+            `;
+            list.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Error loading services:", error);
+        status.innerText = "Cannot connect to backend.";
+        status.style.color = "red";
+    }
+}
+
 </script>
+
 </body>
 </html>
