@@ -49,52 +49,66 @@
         window.location.href = "/index.html";
     }
 
-    function sendMessage() {
+    async function sendMessage() {
         const input = document.getElementById("userQuestion");
         const chatBox = document.getElementById("chatBox");
         const question = input.value.trim();
 
         if (!question) return;
 
+        // 1. Display User Message
         appendMessage("You", question);
-
-        let answer = getDemoResponse(question);
-        appendMessage("Assistant", answer);
-
         input.value = "";
+
+        // 2. Add "Thinking..." indicator
+        const loadingId = "loading-" + Date.now();
+        const loadingMsg = document.createElement("p");
+        loadingMsg.id = loadingId;
+        loadingMsg.innerHTML = "<strong>Assistant:</strong> <em>Thinking...</em>";
+        chatBox.appendChild(loadingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // 3. Hit your actual Backend API
+            const response = await fetch('/api/chatbot/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: question })
+            });
+
+            if (!response.ok) throw new Error("Server error");
+
+            const data = await response.json();
+            
+            // 4. Remove loader and show real response
+            document.getElementById(loadingId).remove();
+            appendMessage("Assistant", data.response);
+
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById(loadingId).remove();
+            appendMessage("Assistant", "Sorry, I'm having trouble connecting to the service right now.");
+        }
     }
 
     function appendMessage(sender, text) {
+        const chatBox = document.getElementById("chatBox");
         const p = document.createElement("p");
         p.innerHTML = `<strong>${sender}:</strong> ${text}`;
-        document.getElementById("chatBox").appendChild(p);
+        chatBox.appendChild(p);
+        
+        // Auto-scroll to bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function getDemoResponse(question) {
-        const q = question.toLowerCase();
-
-        if (q.includes("book") || q.includes("booking")) {
-            return "To book a consulting session, go to Request Booking, select a service, choose a consultant and time slot, then submit your request.";
+    // Allow "Enter" key to send message
+    document.getElementById("userQuestion").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
         }
-
-        if (q.includes("payment") || q.includes("pay")) {
-            return "You can process payment after a consultant accepts your booking. Go to Process Payment to select a booking and payment method.";
-        }
-
-        if (q.includes("service") || q.includes("services")) {
-            return "Available services include Consulting, Resume Review, and Mock Interview.";
-        }
-
-        if (q.includes("cancel")) {
-            return "You can cancel a booking from Booking History, depending on its current status and system policy.";
-        }
-
-        if (q.includes("policy") || q.includes("refund")) {
-            return "System policies such as cancellation and refund rules are managed by the admin. Please check platform policy information for details.";
-        }
-
-        return "I can help with services, booking steps, payments, cancellation, and general platform questions.";
-    }
+    });
 </script>
 </body>
 </html>
