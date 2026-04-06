@@ -4,6 +4,7 @@
 * **Booking Requests:** All bookings begin in a `Requested` state. A booking is only finalized once a Consultant moves it to the `Confirmed` state.
 * **Consultant Rights:** Consultants have the authority to accept or reject any booking request based on their current schedule and expertise.
 * **Double Booking:** The system automatically prevents a consultant from being booked for the same time slot by multiple clients.
+* **Services Offered:** Consulting Intro session, Resume Review and Mock interview.
 
 ## 2. Cancellation & Refund Policy
 * **Standard Cancellation:** Clients can cancel a booking at any time via their dashboard.

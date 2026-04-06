@@ -4,13 +4,9 @@ The ConsultLink AI Assistant is a real-time, context-aware support interface int
 • Examples of Questions
 The Assistant is optimized to handle queries regarding the specific business logic defined in the platform's operational mandates:
 
-Policy Queries: "What is the fee if I cancel a booking at the last minute?"
-
-Process Guidance: "How do I request a mock interview with a consultant?"
+Policy Queries: "How do I cancel a booking?"
 
 General Info: "What services are currently offered on ConsultLink?"
-
-Payment Support: "When does a booking status change to 'Paid'?"
 
 • System Context Provided to the AI
 The Assistant uses a Retrieval-Augmented Generation (RAG) Light architecture. Upon initialization, the system injects a specialized platform-policies.md markdown file into the LLM’s system prompt. This ensures:
