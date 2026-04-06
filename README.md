@@ -24,6 +24,7 @@ AI integration: Aron Joseph, Jingchun Ji
 Front-End: Jingchun Ji, Aron Joseph  
 Back-End: Jingchun, Ji, Aron Joseph  
 Documentation: Aron Joseph, Jingchun Ji  
+UML Class Diagram: Constantinos Giannaras
 Code review and feedback: Khiem Nguyen, Constantinos Giannaras  
 
 
