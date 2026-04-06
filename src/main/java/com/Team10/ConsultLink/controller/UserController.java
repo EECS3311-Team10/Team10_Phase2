@@ -6,15 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.Team10.ConsultLink.repository.UserRepository;
 import com.Team10.ConsultLink.users.Client;
@@ -31,20 +23,60 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
+
         String userId = loginData.get("userId");
         String password = loginData.get("password");
 
         User user = userRepository.findByUserId(userId);
 
-        if (user != null && user.getPassword() != null && user.getPassword().equals(password)) {
+        if (user != null && user.getPassword() != null &&
+            user.getPassword().equals(password)) {
+
+            // block consultant if not approved
+            if (user instanceof Consultant consultant) {
+                if (!consultant.isApproved()) {
+                    return ResponseEntity
+                            .status(HttpStatus.FORBIDDEN)
+                            .body("Consultant not approved yet");
+                }
+            }
+
             return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid credentials");
     }
 
+    // REGISTER CLIENT OR CONSULTANT
     @PostMapping("/register")
-    public User registerClient(@RequestBody Client client) {
+    public User register(@RequestBody Map<String, String> data) {
+
+        String role = data.get("role");
+
+        if ("CONSULTANT".equalsIgnoreCase(role)) {
+
+            Consultant consultant = new Consultant(
+                    data.get("userId"),
+                    data.get("name"),
+                    data.get("email"),
+                    data.get("phone"),
+                    data.get("password")
+            );
+
+            consultant.setApproved(false); // admin must approve
+            return userRepository.save(consultant);
+        }
+
+        Client client = new Client(
+                data.get("userId"),
+                data.get("name"),
+                data.get("email"),
+                data.get("phone"),
+                data.get("password")
+        );
+
         return userRepository.save(client);
     }
 
@@ -53,24 +85,13 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @PutMapping("/consultants/{id}/approve")
     public ResponseEntity<?> approveConsultant(@PathVariable Long id) {
+
         User user = userRepository.findById(id).orElse(null);
 
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         if (!(user instanceof Consultant consultant)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("User is not a consultant");
+            return ResponseEntity.badRequest().body("Not consultant");
         }
 
         consultant.setApproved(true);
@@ -79,27 +100,14 @@ public class UserController {
 
     @PutMapping("/consultants/{id}/reject")
     public ResponseEntity<?> rejectConsultant(@PathVariable Long id) {
+
         User user = userRepository.findById(id).orElse(null);
 
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         if (!(user instanceof Consultant consultant)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("User is not a consultant");
+            return ResponseEntity.badRequest().body("Not consultant");
         }
 
         consultant.setApproved(false);
         return ResponseEntity.ok(userRepository.save(consultant));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
     }
 }
