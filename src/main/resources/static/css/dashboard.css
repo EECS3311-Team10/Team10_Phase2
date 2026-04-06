@@ -117,3 +117,13 @@
     color: #1e5bb8;
     font-weight: 500;
 }
+
+.dashboard-output p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap; /* Maintains AI formatting/line breaks */
+}
+
+.dashboard-output strong {
+    color: #2c3e50; /* Makes "Assistant:" stand out */
+}
