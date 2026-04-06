@@ -59,8 +59,27 @@ public class BookingController {
 
     @PutMapping("/{id}/cancel")
     public Booking cancelBooking(@PathVariable Long id) {
+
         Booking booking = bookingRepository.findById(id).orElse(null);
         if (booking == null) return null;
+
+        // cannot cancel after completed
+        if ("COMPLETED".equals(booking.getStatus()) ||
+            "CANCELLED".equals(booking.getStatus()) ||
+            "REJECTED".equals(booking.getStatus())) {
+            return null;
+        }
+
+        // check 24-hour rule
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime scheduled = booking.getScheduledTime();
+
+        long hoursUntil =
+            java.time.Duration.between(now, scheduled).toHours();
+
+        if (hoursUntil < 24) {
+            return null;
+        }
 
         booking.setStatus("CANCELLED");
         return bookingRepository.save(booking);
