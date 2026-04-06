@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConsultLink - Policies</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+<h2>ConsultLink</h2>
+<button onclick="go('/client/client.html')">Dashboard</button>
+<button onclick="go('/client/browse-services.html')">Browse Services</button>
+<button onclick="go('/client/request-booking.html')">Request Booking</button>
+<button onclick="go('/client/booking-history.html')">Booking History</button>
+<button onclick="go('/client/process-payment.html')">Process Payment</button>
+<button onclick="go('/client/payment-history.html')">Payment History</button>
+<button onclick="go('/client/policy.html')" class="active">Policies</button>
+<button onclick="go('/client/chatbot.html')">AI Assistant</button>
+<button onclick="logout()">Logout</button>
+</aside>
+
+<main class="content">
+<h1>System Policies</h1>
+
+<div class="card">
+<h3>Cancellation Rule</h3>
+<p id="cancellationRule">Loading...</p>
+</div>
+
+<div class="card">
+<h3>Refund Policy</h3>
+<p id="refundPolicy">Loading...</p>
+</div>
+
+<div class="card">
+<h3>Notification Setting</h3>
+<p id="notificationSetting">Loading...</p>
+</div>
+
+<div class="card">
+<h3>Pricing Strategy</h3>
+<p id="pricingStrategy">Loading...</p>
+</div>
+
+<p id="message" class="page-message"></p>
+
+</main>
+</div>
+
+<script>
+
+loadPolicies();
+
+function go(page){
+window.location.href = page;
+}
+
+function logout(){
+sessionStorage.clear();
+window.location.href = "/index.html";
+}
+
+async function loadPolicies(){
+
+const message = document.getElementById("message");
+
+try{
+
+const response = await fetch("/api/policies");
+
+if(!response.ok){
+message.innerText = "Failed to load policies.";
+message.style.color = "red";
+return;
+}
+
+const policies = await response.json();
+
+document.getElementById("cancellationRule").innerText =
+policies.cancellationRule;
+
+document.getElementById("refundPolicy").innerText =
+policies.refundPolicy;
+
+document.getElementById("notificationSetting").innerText =
+policies.notificationSetting;
+
+document.getElementById("pricingStrategy").innerText =
+policies.pricingStrategy;
+
+}catch(error){
+console.error(error);
+message.innerText = "Cannot connect to backend.";
+message.style.color = "red";
+}
+
+}
+
+</script>
+
+</body>
+</html>

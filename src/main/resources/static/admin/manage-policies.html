@@ -22,19 +22,14 @@
         <h1>Manage Policies</h1>
 
         <div class="card">
+
             <label for="cancellationRule">Cancellation Rule</label>
-            <select id="cancellationRule" class="input">
-                <option value="24-hour notice required">24-hour notice required</option>
-                <option value="12-hour notice required">12-hour notice required</option>
-                <option value="Same-day cancellation allowed">Same-day cancellation allowed</option>
-            </select>
+            <input type="text" id="cancellationRule" class="input"
+                placeholder="Example: 24-hour notice required">
 
             <label for="refundPolicy">Refund Policy</label>
-            <select id="refundPolicy" class="input">
-                <option value="Full refund">Full refund</option>
-                <option value="50% refund">50% refund</option>
-                <option value="No refund">No refund</option>
-            </select>
+            <input type="text" id="refundPolicy" class="input"
+                placeholder="Example: Full refund before 24 hours">
 
             <label for="notificationSetting">Notification Setting</label>
             <select id="notificationSetting" class="input">
@@ -47,11 +42,11 @@
             <select id="pricingStrategy" class="input">
                 <option value="Standard pricing">Standard pricing</option>
                 <option value="Discount pricing">Discount pricing</option>
-                <option value="Premium pricing">Premium pricing</option>
             </select>
 
             <button class="primary-btn" onclick="savePolicies()">Save Policies</button>
             <p id="message" class="page-message"></p>
+
         </div>
     </main>
 </div>
@@ -62,7 +57,7 @@
 
     function guardAdmin() {
         const role = sessionStorage.getItem("userRole");
-        if (role !== "ADMIN" && role !== "Admin") {
+        if (!role || role.toUpperCase() !== "ADMIN") {
             window.location.href = "/index.html";
         }
     }

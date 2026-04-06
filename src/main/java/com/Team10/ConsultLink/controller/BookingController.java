@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.Team10.ConsultLink.model.Booking;
+import com.Team10.ConsultLink.model.Policy;
 import com.Team10.ConsultLink.repository.BookingRepository;
+import com.Team10.ConsultLink.repository.PolicyRepository;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -15,6 +17,9 @@ public class BookingController {
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    @Autowired
+    private PolicyRepository policyRepository;
 
     @GetMapping("/hello")
     public String sayHello() {
@@ -26,6 +31,18 @@ public class BookingController {
         if (booking.getStatus() == null || booking.getStatus().isEmpty()) {
             booking.setStatus("REQUESTED");
         }
+
+        // apply pricing policy
+        List<Policy> policies = policyRepository.findAll();
+
+        if (!policies.isEmpty()) {
+            Policy policy = policies.get(0);
+
+            if ("Discount pricing".equals(policy.getPricingStrategy())) {
+                booking.setPrice(booking.getPrice() * 0.9); // 10% discount
+            }
+        }
+
         return bookingRepository.save(booking);
     }
 
@@ -59,23 +76,19 @@ public class BookingController {
 
     @PutMapping("/{id}/cancel")
     public Booking cancelBooking(@PathVariable Long id) {
-
         Booking booking = bookingRepository.findById(id).orElse(null);
         if (booking == null) return null;
 
-        // cannot cancel after completed
         if ("COMPLETED".equals(booking.getStatus()) ||
             "CANCELLED".equals(booking.getStatus()) ||
             "REJECTED".equals(booking.getStatus())) {
             return null;
         }
 
-        // check 24-hour rule
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalDateTime scheduled = booking.getScheduledTime();
 
-        long hoursUntil =
-            java.time.Duration.between(now, scheduled).toHours();
+        long hoursUntil = java.time.Duration.between(now, scheduled).toHours();
 
         if (hoursUntil < 24) {
             return null;
