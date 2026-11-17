@@ -1,5 +1,9 @@
 # EECS 3311 Phase 2 - ConsultLink
 
+## Refinement work
+
+The [v1 redesign](docs/refinement/README.md) contains the API contract, fresh database schema, workflow rules, code audit, and UI completion requirements. It is an isolated foundation; the legacy application below has not yet been migrated to v1. See the [implementation checklist](docs/refinement/REVIEW.md) before treating it as complete.
+
 Full frontend
 AI chatbot integration
 deployment with Docker.

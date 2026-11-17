@@ -1,0 +1,50 @@
+name: Refinement contract and database
+
+on:
+  pull_request:
+    paths:
+      - 'database/**'
+      - 'openapi/**'
+      - 'scripts/**'
+      - '.github/workflows/refinement-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract-and-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-ci-fixture
+          POSTGRES_DB: consultlink_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d consultlink_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: disposable-ci-fixture
+      PGDATABASE: consultlink_test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Validate generated API contract
+        run: |
+          node scripts/build-openapi.cjs
+          git diff --exit-code -- openapi/consultlink-v1.json
+          node scripts/check-openapi.cjs
+      - name: Apply isolated schema and exercise database guards
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f database/migrations/V1__consultlink_core.sql
+          psql -X -v ON_ERROR_STOP=1 -f database/tests/constraints.sql
